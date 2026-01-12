@@ -27,6 +27,15 @@
 * **Breaking** Rename `FSelectSearchStyle.textFieldStyle` to `FSelectSearchStyle.fieldStyle`.
 * **Breaking** Remove `FSelectStyle.iconStyle`. Use `FSelectStyle.fieldStyle.iconStyle` instead.
 * **Breaking** Remove `FSelectSearchStyle.iconStyle`. Use `FSelectSearchStyle.fieldStyle.iconStyle` instead.
+* **Breaking** Change `FMultiSelectFieldStyle.iconStyle` type from `IconThemeData` to `FWidgetStateMap<IconThemeData>`.
+               Wrap existing values with `.all(...)`, e.g. `.all(IconThemeData(...))`.
+* **Breaking** Add `enabled` parameter to `FMultiSelectTagBuilder` at position 1 (after `context`).
+
+* Fix `FMultiSelect` still allowing tags to be removed when disabled.
+
+
+### `FSlider`
+* Change `FSlider`'s default error style to not affect the entire slider.
 
 
 ### `FTextField`
@@ -37,8 +46,11 @@
 
 
 ### `FTimeField`
+* Change error message when localizations are missing to be more descriptive.
 * **Breaking** Rename `FTimeFieldStyle.selectFieldStyle` to `FTimeFieldStyle.fieldStyle`.
 * **Breaking** Remove `FTimeFieldStyle.iconStyle`. Use `FTimeFieldStyle.fieldStyle.iconStyle` instead.
+
+* Fix `FTimeField` incorrectly handling traversal when no localizations are provided.
 
 
 ### `FTimePicker`
