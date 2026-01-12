@@ -1,6 +1,6 @@
 <a href="https://forui.dev">
   <h1 align="center">
-    <img width="400" alt="Forui" src="https://raw.githubusercontent.com/duobaseio/forui/main/docs/public/light_logo.png">
+    <img width="400" alt="Forui" src="https://raw.githubusercontent.com/duobaseio/forui/main/docs/public/logos/light_logo.png">
   </h1>
 </a>
 
@@ -25,7 +25,7 @@
 
 <br />
 <div align="center">
- <img width="800" alt="Forui" src="https://raw.githubusercontent.com/duobaseio/forui/main/docs/public/banner-160724.png">
+ <img width="800" alt="Forui" src="https://raw.githubusercontent.com/duobaseio/forui/main/docs/public/banners/banner-160724.png">
 </div>
 
 > [!IMPORTANT]
