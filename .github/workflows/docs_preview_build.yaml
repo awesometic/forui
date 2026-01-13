@@ -32,7 +32,7 @@ jobs:
           path: ./docs_snippets/build/web
           retention-days: 1
 
-      # Prepare branch & sha info
+      # Escape branch name and create short SHA for demo URL
       - id: escape-branch
         run: |
           BRANCH="${{ github.event.pull_request.head.ref }}"
@@ -40,7 +40,8 @@ jobs:
           echo "branch=$ESCAPED" >> $GITHUB_OUTPUT
       - id: short-sha
         run: |
-          echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+          SHA="${{ github.event.pull_request.head.sha }}"
+          echo "sha=${SHA:0:7}" >> $GITHUB_OUTPUT
 
       # Build docs
       - uses: actions/setup-node@v6
@@ -50,17 +51,17 @@ jobs:
         with:
           version: 10
       - working-directory: ./docs
+        run: pnpm install
+      - working-directory: ./docs
+        run: pnpm exec opennextjs-cloudflare build
         env:
           # We don't use the CLOUDFLARE_DEMO_PROJECT_NAME environment variable since it requires us to set the
           # environment for this workflow, unintentionally leaking environment secrets.
           NEXT_PUBLIC_DEMO_URL: https://${{ steps.escape-branch.outputs.branch }}-${{ steps.short-sha.outputs.sha }}.forui-demo-dev.pages.dev
-        run: |
-          pnpm install
-          pnpm run build
       - uses: actions/upload-artifact@v6
         with:
           name: docs-build
-          path: ./docs/out
+          path: ./docs/.open-next
           retention-days: 1
 
       # Upload PR metadata

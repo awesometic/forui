@@ -50,18 +50,39 @@ jobs:
           command: pages deploy ./docs-snippets--build --project-name=${{ vars.CLOUDFLARE_DEMO_PROJECT_NAME }} --branch=${{ steps.escape-branch.outputs.branch }}-${{ steps.short-sha.outputs.sha }}
 
       # Deploy docs
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          sparse-checkout: |
+            docs/package.json
+            docs/pnpm-lock.yaml
+            docs/wrangler.jsonc
+            docs/open-next.config.ts
+            .github/deployment_preview_template.md
       - uses: actions/download-artifact@v7
         with:
           name: docs-build
-          path: ./docs-build
+          path: ./docs/.open-next
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-      - uses: cloudflare/wrangler-action@v3
-        id: publish-docs
+      - uses: actions/setup-node@v6
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./docs-build --project-name=${{ vars.CLOUDFLARE_DOCS_PROJECT_NAME }} --branch=${{ steps.escape-branch.outputs.branch }}-${{ steps.short-sha.outputs.sha }}
+          node-version: 24
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Deploy docs to Cloudflare Workers
+        id: publish-docs
+        working-directory: ./docs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          pnpm install
+          OUTPUT=$(pnpm exec opennextjs-cloudflare upload -- --env dev 2>&1)
+          echo "$OUTPUT"
+          PREVIEW_URL=$(echo "$OUTPUT" | grep "Version Preview URL:" | awk '{print $NF}')
+          echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
 
       # Create/update comment with link to preview
       - uses: actions/create-github-app-token@v2
@@ -69,12 +90,6 @@ jobs:
         with:
           app-id: ${{ secrets.AUTO_MAID_APP_ID }}
           private-key: ${{ secrets.AUTO_MAID_PRIVATE_KEY }}
-      - uses: actions/checkout@v6
-        with:
-          token: ${{ steps.generate-token.outputs.token }}
-          ref: main
-          sparse-checkout: |
-            .github/deployment_preview_template.md
       - uses: peter-evans/find-comment@v4
         id: find-comment
         with:
@@ -86,7 +101,7 @@ jobs:
           template: .github/deployment_preview_template.md
           vars: |
             sha: ${{ steps.pr-metadata.outputs.pr_head_sha }}
-            url: ${{ steps.publish-docs.outputs.deployment-url }}
+            url: ${{ steps.publish-docs.outputs.preview-url }}
       - uses: peter-evans/create-or-update-comment@v5
         with:
           token: ${{ steps.generate-token.outputs.token }}
@@ -98,4 +113,4 @@ jobs:
       # Check that all relative URLs are working
       - uses: actions/setup-go@v6
       - run: go install github.com/raviqqe/muffet/v2@latest
-      - run: muffet ${{ steps.publish-docs.outputs.deployment-url }} --buffer-size=32768 --exclude="(\/cdn-cgi\/)|(github.com)|(pub.dev)|(shadcn.com)"
+      - run: muffet ${{ steps.publish-docs.outputs.preview-url }} --buffer-size=32768 --exclude="(\/cdn-cgi\/)|(github.com)|(pub.dev)|(shadcn.com)"
