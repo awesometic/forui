@@ -24,19 +24,20 @@ typedef FTextFieldCounterBuilder =
 /// A callback for decorating a field. It should always use the given field.
 ///
 /// [style] is the field's style.
-/// [states] is the current states of the widget.
+/// [variants] is the current variants of the widget.
 /// [field] is the field that will be decorated.
 ///
 /// See [FTextField.builder].
-typedef FFieldBuilder<T> = Widget Function(BuildContext context, T style, Set<WidgetState> states, Widget field);
+typedef FFieldBuilder<T> =
+    Widget Function(BuildContext context, T style, Set<FTextFieldVariant> variants, Widget field);
 
 /// A callback for building a field's icon.
 ///
 /// [style] is the field's style.
-/// [states] is the current states of the widget.
+/// [variants] is the current variants of the widget.
 ///
 /// See [FTextField.prefixBuilder] and [FTextField.suffixBuilder].
-typedef FFieldIconBuilder<T> = Widget Function(BuildContext context, T style, Set<WidgetState> states);
+typedef FFieldIconBuilder<T> = Widget Function(BuildContext context, T style, Set<FTextFieldVariant> variants);
 
 /// A callback for building a clear icon.
 ///
@@ -65,7 +66,7 @@ class FTextField extends StatelessWidget {
   static Widget password({
     FTextFieldControl control = const .managed(),
     FObscureTextControl obscureTextControl = const .managed(),
-    FTextFieldStyle Function(FTextFieldStyle style)? style,
+    FTextFieldStyleDelta style = const .inherit(),
     FFieldBuilder<FTextFieldStyle> builder = Input.defaultBuilder,
     Widget? label = const LocalizedText.password(),
     String? hint,
@@ -198,6 +199,16 @@ class FTextField extends StatelessWidget {
   /// {@template forui.text_field.style}
   /// The text field's style. Defaults to [FThemeData.textFieldStyle].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FTextFieldStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
@@ -205,7 +216,7 @@ class FTextField extends StatelessWidget {
   /// dart run forui style create text-field
   /// ```
   /// {@endtemplate}
-  final FTextFieldStyle Function(FTextFieldStyle style)? style;
+  final FTextFieldStyleDelta style;
 
   /// {@template forui.text_field.builder}
   /// The builder used to decorate the text-field. It should always use the given child.
@@ -816,7 +827,7 @@ class FTextField extends StatelessWidget {
   /// Creates a [FTextField].
   const FTextField({
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.builder = Input.defaultBuilder,
     this.label,
     this.hint,
@@ -882,7 +893,7 @@ class FTextField extends StatelessWidget {
   /// Creates a [FTextField] configured for emails.
   const FTextField.email({
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.builder = Input.defaultBuilder,
     this.label = const LocalizedText.email(),
     this.hint,
@@ -952,7 +963,7 @@ class FTextField extends StatelessWidget {
   /// [maxLines].
   const FTextField.multiline({
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.builder = Input.defaultBuilder,
     this.label,
     this.hint,

@@ -19,13 +19,23 @@ class FPagination extends StatefulWidget {
 
   /// The pagination's style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FPaginationStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create pagination
   /// ```
-  final FPaginationStyle Function(FPaginationStyle style)? style;
+  final FPaginationStyleDelta style;
 
   /// The previous button placed at the beginning of the pagination.
   ///
@@ -38,7 +48,13 @@ class FPagination extends StatefulWidget {
   final Widget? next;
 
   /// Creates an [FPagination].
-  const FPagination({this.control = const .managed(), this.style, this.previous, this.next, super.key});
+  const FPagination({
+    this.control = const .managed(),
+    this.style = const .inherit(),
+    this.previous,
+    this.next,
+    super.key,
+  });
 
   @override
   State<FPagination> createState() => _FPaginationState();
@@ -81,7 +97,7 @@ class _FPaginationState extends State<FPagination> {
 
   @override
   Widget build(BuildContext context) {
-    final style = widget.style?.call(context.theme.paginationStyle) ?? context.theme.paginationStyle;
+    final style = widget.style(context.theme.paginationStyle);
     final localizations = FLocalizations.of(context) ?? FDefaultLocalizations();
 
     final previous =
@@ -200,14 +216,14 @@ class Action extends StatelessWidget {
       semanticsLabel: semanticsLabel,
       focusedOutlineStyle: context.theme.style.focusedOutlineStyle,
       onPress: onPress,
-      builder: (context, states, child) => DecoratedBox(
-        decoration: style.itemDecoration.resolve(states),
+      builder: (context, variants, child) => DecoratedBox(
+        decoration: style.itemDecoration.resolve(variants),
         child: ConstrainedBox(
           constraints: style.itemConstraints,
           child: DefaultTextStyle(
-            style: style.itemTextStyle.resolve(states),
+            style: style.itemTextStyle.resolve(variants),
             child: Center(
-              child: IconTheme(data: style.itemIconStyle.resolve(states), child: child!),
+              child: IconTheme(data: style.itemIconStyle.resolve(variants), child: child!),
             ),
           ),
         ),
@@ -241,12 +257,12 @@ class _Page extends StatelessWidget {
           focusedOutlineStyle: style.focusedOutlineStyle,
           selected: controller.value == page,
           onPress: () => controller.value = page,
-          builder: (_, states, _) => DecoratedBox(
-            decoration: style.itemDecoration.resolve(states),
+          builder: (_, variants, _) => DecoratedBox(
+            decoration: style.itemDecoration.resolve(variants),
             child: ConstrainedBox(
               constraints: style.itemConstraints,
               child: DefaultTextStyle(
-                style: style.itemTextStyle.resolve(states),
+                style: style.itemTextStyle.resolve(variants),
                 child: Center(child: Text('${page + 1}')),
               ),
             ),

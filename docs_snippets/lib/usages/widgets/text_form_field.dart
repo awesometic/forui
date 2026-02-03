@@ -6,7 +6,7 @@ import 'package:forui/forui.dart';
 
 final textFormField = FTextFormField(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(contentPadding: .symmetric(horizontal: 10)),
   enabled: true,
   label: const Text('Label'),
   hint: 'Enter text...',
@@ -64,7 +64,6 @@ final textFormField = FTextFormField(
   selectionControls: null,
   dragStartBehavior: .start,
   groupId: EditableText,
-  statesController: null,
   undoController: null,
   // {@endcategory}
   // {@category "Lines/Length"}
@@ -93,7 +92,7 @@ final textFormField = FTextFormField(
 
 final textFormFieldEmail = FTextFormField.email(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(contentPadding: .symmetric(horizontal: 10)),
   enabled: true,
   label: const Text('Email'),
   hint: 'Enter email...',
@@ -151,7 +150,6 @@ final textFormFieldEmail = FTextFormField.email(
   selectionControls: null,
   dragStartBehavior: .start,
   groupId: EditableText,
-  statesController: null,
   undoController: null,
   // {@endcategory}
   // {@category "Lines/Length"}
@@ -180,7 +178,7 @@ final textFormFieldEmail = FTextFormField.email(
 
 final textFormFieldMultiline = FTextFormField.multiline(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(contentPadding: .symmetric(horizontal: 10)),
   enabled: true,
   label: const Text('Label'),
   hint: 'Enter text...',
@@ -238,7 +236,6 @@ final textFormFieldMultiline = FTextFormField.multiline(
   selectionControls: null,
   dragStartBehavior: .start,
   groupId: EditableText,
-  statesController: null,
   undoController: null,
   // {@endcategory}
   // {@category "Lines/Length"}
@@ -267,7 +264,7 @@ final textFormFieldMultiline = FTextFormField.multiline(
 
 final textFormFieldPassword = FTextFormField.password(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(contentPadding: .symmetric(horizontal: 10)),
   enabled: true,
   label: const Text('Password'),
   hint: 'Enter password...',
@@ -328,7 +325,6 @@ final textFormFieldPassword = FTextFormField.password(
   selectionControls: null,
   dragStartBehavior: .start,
   groupId: EditableText,
-  statesController: null,
   undoController: null,
   // {@endcategory}
   // {@category "Lines/Length"}

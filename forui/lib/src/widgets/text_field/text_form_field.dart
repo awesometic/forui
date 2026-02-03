@@ -32,7 +32,7 @@ class FTextFormField extends StatelessWidget with FFormFieldProperties<String> {
   static Widget password({
     FTextFieldControl control = const .managed(),
     FObscureTextControl obscureTextControl = const .managed(),
-    FTextFieldStyle Function(FTextFieldStyle style)? style,
+    FTextFieldStyleDelta style = const .inherit(),
     FFieldBuilder<FTextFieldStyle> builder = Input.defaultBuilder,
     Widget? label = const LocalizedText.password(),
     String? hint,
@@ -177,10 +177,11 @@ class FTextFormField extends StatelessWidget with FFormFieldProperties<String> {
   final FTextFieldControl control;
 
   /// {@macro forui.text_field.style}
-  final FTextFieldStyle Function(FTextFieldStyle style)? style;
+  final FTextFieldStyleDelta style;
 
   /// {@macro forui.text_field.builder}
-  final Widget Function(BuildContext context, FTextFieldStyle style, Set<WidgetState> states, Widget field) builder;
+  final Widget Function(BuildContext context, FTextFieldStyle style, Set<FTextFieldVariant> variants, Widget field)
+  builder;
 
   /// {@macro forui.text_field.label}
   @override
@@ -345,10 +346,10 @@ class FTextFormField extends StatelessWidget with FFormFieldProperties<String> {
   final SpellCheckConfiguration? spellCheckConfiguration;
 
   /// {@macro forui.text_field.prefixBuilder}
-  final Widget Function(BuildContext context, FTextFieldStyle style, Set<WidgetState> states)? prefixBuilder;
+  final Widget Function(BuildContext context, FTextFieldStyle style, Set<FTextFieldVariant> variants)? prefixBuilder;
 
   /// {@macro forui.text_field.suffixBuilder}
-  final Widget Function(BuildContext context, FTextFieldStyle style, Set<WidgetState> states)? suffixBuilder;
+  final Widget Function(BuildContext context, FTextFieldStyle style, Set<FTextFieldVariant> variants)? suffixBuilder;
 
   /// {@macro forui.text_field.clearable}
   final bool Function(TextEditingValue) clearable;
@@ -377,7 +378,7 @@ class FTextFormField extends StatelessWidget with FFormFieldProperties<String> {
   /// Creates a [FTextFormField].
   const FTextFormField({
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.builder = Input.defaultBuilder,
     this.label,
     this.hint,
@@ -448,7 +449,7 @@ class FTextFormField extends StatelessWidget with FFormFieldProperties<String> {
   /// Creates a [FTextFormField] configured for emails.
   const FTextFormField.email({
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.builder = Input.defaultBuilder,
     this.label = const LocalizedText.email(),
     this.hint,
@@ -523,7 +524,7 @@ class FTextFormField extends StatelessWidget with FFormFieldProperties<String> {
   /// [maxLines].
   const FTextFormField.multiline({
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.builder = Input.defaultBuilder,
     this.label,
     this.hint,

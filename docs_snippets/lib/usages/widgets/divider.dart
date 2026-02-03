@@ -2,9 +2,9 @@
 
 import 'package:forui/forui.dart';
 
-final divider = FDivider(
+const divider = FDivider(
   // {@category "Core"}
-  style: (style) => style,
+  style: .delta(padding: .zero),
   axis: .horizontal,
   // {@endcategory}
 );

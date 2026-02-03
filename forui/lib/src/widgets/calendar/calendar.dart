@@ -33,13 +33,23 @@ class FCalendar extends StatefulWidget {
 
   /// The style. Defaults to [FThemeData.calendarStyle].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FCalendarStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create calendar
   /// ```
-  final FCalendarStyle Function(FCalendarStyle style)? style;
+  final FCalendarStyleDelta style;
 
   /// Controls how dates are selected.
   final FCalendarControl<Object?> control;
@@ -86,7 +96,7 @@ class FCalendar extends StatefulWidget {
   /// new [initialMonth]. This will reset the widget's interactive state.
   FCalendar({
     required this.control,
-    this.style,
+    this.style = const .inherit(),
     this.dayBuilder = defaultDayBuilder,
     this.onMonthChange,
     this.onPress,
@@ -159,7 +169,7 @@ class _State extends State<FCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    final style = widget.style?.call(context.theme.calendarStyle) ?? context.theme.calendarStyle;
+    final style = widget.style(context.theme.calendarStyle);
     return DecoratedBox(
       decoration: style.decoration,
       child: Padding(
@@ -254,24 +264,29 @@ class FCalendarStyle with Diagnosticable, _$FCalendarStyleFunctions {
   /// Creates a [FCalendarStyle] that inherits its properties.
   FCalendarStyle.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
-        headerStyle: FCalendarHeaderStyle.inherit(colors: colors, typography: typography, style: style),
-        dayPickerStyle: FCalendarDayPickerStyle.inherit(colors: colors, typography: typography),
+        headerStyle: .inherit(colors: colors, typography: typography, style: style),
+        dayPickerStyle: .inherit(colors: colors, typography: typography),
         yearMonthPickerStyle: FCalendarEntryStyle(
-          backgroundColor: FWidgetStateMap({
-            (WidgetState.hovered | WidgetState.pressed) & ~WidgetState.disabled: colors.secondary,
-            WidgetState.any: colors.background,
-          }),
-          borderColor: FWidgetStateMap({
-            WidgetState.disabled: colors.background,
-            WidgetState.focused: colors.foreground,
-          }),
-          textStyle: FWidgetStateMap({
-            WidgetState.disabled: typography.base.copyWith(
-              color: colors.disable(colors.mutedForeground),
-              fontWeight: .w500,
-            ),
-            WidgetState.any: typography.base.copyWith(color: colors.foreground, fontWeight: .w500),
-          }),
+          backgroundColor: FVariants(
+            colors.background,
+            variants: {
+              [.disabled]: colors.background,
+              [.hovered, .pressed]: colors.secondary,
+            },
+          ),
+          borderColor: FVariants(
+            null,
+            variants: {
+              [.disabled]: colors.background,
+              [.focused]: colors.foreground,
+            },
+          ),
+          textStyle: .delta(
+            typography.base.copyWith(color: colors.foreground, fontWeight: .w500),
+            variants: {
+              [.disabled]: .delta(color: colors.disable(colors.mutedForeground)),
+            },
+          ),
           radius: const .circular(8),
         ),
         decoration: BoxDecoration(

@@ -18,13 +18,23 @@ part 'card.design.dart';
 class FCard extends StatelessWidget {
   /// The style. Defaults to [FThemeData.cardStyle].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FCardStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create card
   /// ```
-  final FCardStyle Function(FCardStyle style)? style;
+  final FCardStyleDelta style;
 
   /// The child.
   final Widget child;
@@ -48,7 +58,7 @@ class FCard extends StatelessWidget {
     Widget? subtitle,
     Widget? child,
     MainAxisSize mainAxisSize = .min,
-    this.style,
+    this.style = const .inherit(),
     super.key,
   }) : child = Content(
          image: image,
@@ -60,13 +70,11 @@ class FCard extends StatelessWidget {
        );
 
   /// Creates a [FCard] with custom content.
-  const FCard.raw({required this.child, this.style, super.key});
+  const FCard.raw({required this.child, this.style = const .inherit(), super.key});
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: (style?.call(context.theme.cardStyle) ?? context.theme.cardStyle).decoration,
-    child: child,
-  );
+  Widget build(BuildContext context) =>
+      DecoratedBox(decoration: style(context.theme.cardStyle).decoration, child: child);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {

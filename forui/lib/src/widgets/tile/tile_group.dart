@@ -47,13 +47,23 @@ part 'tile_group.design.dart';
 class FTileGroup extends StatelessWidget with FTileGroupMixin {
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FTileGroupStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create tile-group
   /// ```
-  final FTileGroupStyle Function(FTileGroupStyle style)? style;
+  final FTileGroupStyleDelta style;
 
   /// {@template forui.widgets.FTileGroup.scrollController}
   /// The scroll controller used to control the position to which this group is scrolled.
@@ -135,7 +145,7 @@ class FTileGroup extends StatelessWidget with FTileGroupMixin {
   /// {@endtemplate}
   FTileGroup({
     required List<FTileMixin> children,
-    this.style,
+    this.style = const .inherit(),
     this.scrollController,
     this.cacheExtent,
     this.maxHeight = .infinity,
@@ -185,7 +195,7 @@ class FTileGroup extends StatelessWidget with FTileGroupMixin {
   FTileGroup.builder({
     required NullableIndexedWidgetBuilder tileBuilder,
     int? count,
-    this.style,
+    this.style = const .inherit(),
     this.scrollController,
     this.cacheExtent,
     this.maxHeight = .infinity,
@@ -227,7 +237,7 @@ class FTileGroup extends StatelessWidget with FTileGroupMixin {
   /// {@endtemplate}
   FTileGroup.merge({
     required List<FTileGroupMixin> children,
-    this.style,
+    this.style = const .inherit(),
     this.scrollController,
     this.cacheExtent,
     this.maxHeight = .infinity,
@@ -260,8 +270,7 @@ class FTileGroup extends StatelessWidget with FTileGroupMixin {
   @override
   Widget build(BuildContext context) {
     final data = FInheritedItemData.maybeOf(context);
-    final inheritedStyle = FTileGroupStyleData.of(context);
-    final style = this.style?.call(inheritedStyle) ?? inheritedStyle;
+    final style = this.style(FTileGroupStyleData.of(context));
     final enabled = this.enabled ?? data?.enabled ?? true;
 
     final sliver = _builder(style, enabled);
@@ -272,7 +281,7 @@ class FTileGroup extends StatelessWidget with FTileGroupMixin {
     return FLabel(
       style: style,
       axis: .vertical,
-      states: {if (!enabled) .disabled, if (error != null) .error},
+      variants: {if (!enabled) .disabled, if (error != null) .error},
       label: label,
       description: description,
       error: error,
@@ -358,11 +367,8 @@ class FTileGroupStyle extends FLabelStyle with _$FTileGroupStyleFunctions {
   final FTileStyle tileStyle;
 
   /// The divider's style.
-  ///
-  /// Supported states:
-  /// * [WidgetState.disabled]
   @override
-  final FWidgetStateMap<Color> dividerColor;
+  final FVariants<FItemGroupVariantConstraint, Color, Delta> dividerColor;
 
   /// The divider's width.
   @override
@@ -388,46 +394,28 @@ class FTileGroupStyle extends FLabelStyle with _$FTileGroupStyleFunctions {
     final tileStyle = FTileStyle.inherit(colors: colors, typography: typography, style: style);
     return .new(
       decoration: BoxDecoration(
-        border: Border.all(color: colors.border, width: style.borderWidth),
+        border: .all(color: colors.border, width: style.borderWidth),
         borderRadius: style.borderRadius,
       ),
 
-      tileStyle: tileStyle.copyWith(
-        decoration: tileStyle.decoration.map(
-          (d) => d == null
-              ? null
-              : BoxDecoration(
-                  color: d.color,
-                  image: d.image,
-                  boxShadow: d.boxShadow,
-                  gradient: d.gradient,
-                  backgroundBlendMode: d.backgroundBlendMode,
-                  shape: d.shape,
-                ),
-        ),
-      ),
+      tileStyle: tileStyle.copyWith(decoration: .apply([.onAll(const .delta(border: null, borderRadius: null))])),
       dividerColor: .all(colors.border),
       dividerWidth: style.borderWidth,
-      labelTextStyle: FWidgetStateMap({
-        WidgetState.error: typography.base.copyWith(
-          color: style.formFieldStyle.labelTextStyle.maybeResolve({})?.color ?? colors.primary,
+      labelTextStyle: .delta(
+        typography.base.copyWith(
+          color: style.formFieldStyle.labelTextStyle.base.color ?? colors.primary,
           fontWeight: .w600,
         ),
-        WidgetState.disabled: typography.base.copyWith(
-          color:
-              style.formFieldStyle.labelTextStyle.maybeResolve({WidgetState.disabled})?.color ??
-              colors.disable(colors.primary),
-          fontWeight: .w600,
-        ),
-        WidgetState.any: typography.base.copyWith(
-          color: style.formFieldStyle.labelTextStyle.maybeResolve({})?.color ?? colors.primary,
-          fontWeight: .w600,
-        ),
-      }),
-      descriptionTextStyle: style.formFieldStyle.descriptionTextStyle.map(
-        (s) => typography.xs.copyWith(color: s.color),
+        variants: {
+          [.disabled]: .delta(color: colors.disable(colors.primary)),
+        },
       ),
-      errorTextStyle: typography.xs.copyWith(color: style.formFieldStyle.errorTextStyle.color),
+      descriptionTextStyle: style.formFieldStyle.descriptionTextStyle.apply([
+        .onAll(.delta(fontSize: typography.xs.fontSize, height: typography.xs.height)),
+      ]),
+      errorTextStyle: style.formFieldStyle.errorTextStyle.apply([
+        .onAll(.delta(fontSize: typography.xs.fontSize, height: typography.xs.height, fontWeight: .w400)),
+      ]),
     );
   }
 }

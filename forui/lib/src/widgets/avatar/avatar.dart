@@ -21,13 +21,23 @@ part 'avatar.design.dart';
 class FAvatar extends StatelessWidget {
   /// The style. Defaults to [FThemeData.avatarStyle].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FAvatarStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create accordion
   /// ```
-  final FAvatarStyle Function(FAvatarStyle style)? style;
+  final FAvatarStyleDelta style;
 
   /// The circle's size. Defaults to 40.
   final double size;
@@ -38,7 +48,7 @@ class FAvatar extends StatelessWidget {
   /// Creates an [FAvatar].
   FAvatar({
     required ImageProvider image,
-    this.style,
+    this.style = const .inherit(),
     this.size = 40.0,
     String? semanticsLabel,
     Widget? fallback,
@@ -46,12 +56,12 @@ class FAvatar extends StatelessWidget {
   }) : child = Content(style: style, size: size, image: image, semanticsLabel: semanticsLabel, fallback: fallback);
 
   /// Creates a [FAvatar] without a fallback.
-  FAvatar.raw({Widget? child, this.style, this.size = 40.0, super.key})
+  FAvatar.raw({Widget? child, this.style = const .inherit(), this.size = 40.0, super.key})
     : child = child ?? PlaceholderContent(style: style, size: size);
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style?.call(context.theme.avatarStyle) ?? context.theme.avatarStyle;
+    final style = this.style(context.theme.avatarStyle);
     return Container(
       alignment: .center,
       height: size,

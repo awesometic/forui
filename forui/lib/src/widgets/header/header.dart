@@ -9,9 +9,14 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
 import 'package:forui/src/foundation/debug.dart';
 import 'package:forui/src/foundation/rendering.dart';
+import 'package:forui/src/theme/delta.dart';
+import 'package:forui/src/theme/variant.dart';
 
+@Variants('FHeader', {'nested': (1, 'The nested header variant.')})
+@Sentinels(FHeaderStyle, {'backgroundFilter': 'imageFilterSentinel'})
 part 'header.design.dart';
 
 part 'header_action.dart';
@@ -41,12 +46,7 @@ sealed class FHeader extends StatelessWidget {
   /// ```shell
   /// dart run forui style create headers
   /// ```
-  const factory FHeader({
-    Widget title,
-    FHeaderStyle Function(FHeaderStyle style)? style,
-    List<Widget> suffixes,
-    Key? key,
-  }) = _FRootHeader;
+  const factory FHeader({Widget title, FHeaderStyleDelta style, List<Widget> suffixes, Key? key}) = _FRootHeader;
 
   /// Creates a nested header whose title is aligned to the center.
   ///
@@ -61,7 +61,7 @@ sealed class FHeader extends StatelessWidget {
   const factory FHeader.nested({
     Widget title,
     AlignmentGeometry titleAlignment,
-    FHeaderStyle Function(FHeaderStyle style)? style,
+    FHeaderStyleDelta style,
     List<Widget> prefixes,
     List<Widget> suffixes,
     Key? key,
@@ -97,31 +97,33 @@ class FHeaderData extends InheritedWidget {
 }
 
 /// [FHeader]'s styles.
-class FHeaderStyles with Diagnosticable, _$FHeaderStylesFunctions {
-  /// The root header's style.
-  @override
-  final FHeaderStyle rootStyle;
+class FHeaderStyles extends FVariants<FHeaderVariantConstraint, FHeaderStyle, FHeaderStyleDelta> {
+  /// Creates a [FHeaderStyles] with concrete styles.
+  FHeaderStyles(super.base, {required super.variants});
 
-  /// The nested header's style.
-  @override
-  final FHeaderStyle nestedStyle;
+  /// Creates a [FHeaderStyles] from deltas.
+  FHeaderStyles.delta(super.base, {required super.variants}) : super.delta();
 
-  /// Creates a [FHeaderStyles].
-  const FHeaderStyles({required this.rootStyle, required this.nestedStyle});
+  /// Creates a [FHeaderStyles] from raw values.
+  FHeaderStyles.raw(super.base, super.variants) : super.raw();
 
   /// Creates a [FHeaderStyles] that inherits its properties.
   FHeaderStyles.inherit({required FColors colors, required FTypography typography, required FStyle style})
-    : rootStyle = FHeaderStyle(
-        systemOverlayStyle: colors.systemOverlayStyle,
-        titleTextStyle: typography.xl3.copyWith(color: colors.foreground, fontWeight: .w700, height: 1),
-        actionStyle: .inherit(colors: colors, style: style, size: 30),
-        padding: style.pagePadding.copyWith(bottom: 15),
-      ),
-      nestedStyle = FHeaderStyle(
-        systemOverlayStyle: colors.systemOverlayStyle,
-        titleTextStyle: typography.xl.copyWith(color: colors.foreground, fontWeight: .w600, height: 1),
-        actionStyle: .inherit(colors: colors, style: style, size: 25),
-        padding: style.pagePadding.copyWith(bottom: 15),
+    : super(
+        FHeaderStyle(
+          systemOverlayStyle: colors.systemOverlayStyle,
+          titleTextStyle: typography.xl3.copyWith(color: colors.foreground, fontWeight: .w700, height: 1),
+          actionStyle: .inherit(colors: colors, style: style, size: 30),
+          padding: style.pagePadding.copyWith(bottom: 15),
+        ),
+        variants: {
+          [.nested]: FHeaderStyle(
+            systemOverlayStyle: colors.systemOverlayStyle,
+            titleTextStyle: typography.xl.copyWith(color: colors.foreground, fontWeight: .w600, height: 1),
+            actionStyle: .inherit(colors: colors, style: style, size: 25),
+            padding: style.pagePadding.copyWith(bottom: 15),
+          ),
+        },
       );
 }
 

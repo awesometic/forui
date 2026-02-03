@@ -1,10 +1,9 @@
 part of 'variant.dart';
 
 /// Represents a platform.
+///
+/// Platform variants are tier 0, the lowest tier. Interaction and semantic variants take precedence during resolution.
 extension type const FPlatformVariant(FVariant _) implements FVariant {
-  /// Matches all touch-based platforms, [android], [iOS] and [fuchsia].
-  static const touch = FPlatformVariant(_Touch());
-
   /// The Android platform variant.
   ///
   /// More specific than [touch] in variant resolution.
@@ -19,9 +18,6 @@ extension type const FPlatformVariant(FVariant _) implements FVariant {
   ///
   /// More specific than [touch] in variant resolution.
   static const fuchsia = FPlatformVariant(_Fuchsia());
-
-  /// Matches all desktop-based platforms, [windows], [macOS] and [linux].
-  static const desktop = FPlatformVariant(_Desktop());
 
   /// The Windows platform variant.
   ///
@@ -42,166 +38,157 @@ extension type const FPlatformVariant(FVariant _) implements FVariant {
   ///
   /// Standalone platform that is neither [touch] nor [desktop].
   static const web = FPlatformVariant(_Web());
-}
 
-/// ## Implementation details
-/// This abuses a [language quirk](https://github.com/dart-lang/language/issues/1711#issuecomment-2715814832) to allow
-/// static and instance members with the same name.
-extension FPlatformVariants on FPlatformVariant {
   /// Whether the current platform is a primarily touch-based platform.
   ///
   /// This is not 100% accurate as there are hybrid devices that use both touch and keyboard/mouse input, e.g.,
   /// Windows Surface laptops.
-  bool get touch => this is _Touch;
+  bool get touch => this is Touch;
 
   /// Whether the current platform is a primarily keyboard/mouse-based platform.
   ///
   /// This is not 100% as accurate as there are hybrid devices that use both touch and keyboard/mouse input, e.g.,
   /// Windows Surface laptops.
-  bool get desktop => this is _Desktop;
+  bool get desktop => this is Desktop;
 }
 
-class _Touch implements FVariant {
-  const _Touch();
+@internal
+class Touch implements FVariant {
+  const Touch();
 
   @override
-  bool satisfiedBy(Set<FVariant> variants) => variants.any((v) => v is _Touch);
+  bool satisfiedBy(Set<FVariant> variants) => variants.any((v) => v is Touch);
 
   @override
-  void _accept(List<String> operands) => operands.add('touch');
-
-  @override
-  int get _operands => 1;
+  void _accept(List<String> operands, List<int> tiers) {
+    operands.add('touch');
+    tiers[0] = tiers[0] + 1;
+  }
 
   @override
   String toString() => 'touch';
 }
 
-class _Android extends _Touch {
+class _Android extends Touch {
   const _Android();
 
   @override
   bool satisfiedBy(Set<FVariant> variants) => variants.contains(const _Android());
 
   @override
-  void _accept(List<String> operands) {
-    super._accept(operands);
-    operands.add('android');
+  void _accept(List<String> operands, List<int> tiers) {
+    operands
+      ..add('touch')
+      ..add('android');
+    tiers[0] = tiers[0] + 2;
   }
-
-  @override
-  int get _operands => 2;
 
   @override
   String toString() => '{touch, android}';
 }
 
-class _Ios extends _Touch {
+class _Ios extends Touch {
   const _Ios();
 
   @override
   bool satisfiedBy(Set<FVariant> variants) => variants.contains(const _Ios());
 
   @override
-  void _accept(List<String> operands) {
-    super._accept(operands);
-    operands.add('iOS');
+  void _accept(List<String> operands, List<int> tiers) {
+    operands
+      ..add('touch')
+      ..add('iOS');
+    tiers[0] = tiers[0] + 2;
   }
-
-  @override
-  int get _operands => 2;
 
   @override
   String toString() => '{touch, iOS}';
 }
 
-class _Fuchsia extends _Touch {
+class _Fuchsia extends Touch {
   const _Fuchsia();
 
   @override
   bool satisfiedBy(Set<FVariant> variants) => variants.contains(const _Fuchsia());
 
   @override
-  void _accept(List<String> operands) {
-    super._accept(operands);
-    operands.add('fuchsia');
+  void _accept(List<String> operands, List<int> tiers) {
+    operands
+      ..add('touch')
+      ..add('fuchsia');
+    tiers[0] = tiers[0] + 2;
   }
-
-  @override
-  int get _operands => 2;
 
   @override
   String toString() => '{touch, fuchsia}';
 }
 
-class _Desktop implements FVariant {
-  const _Desktop();
+@internal
+class Desktop implements FVariant {
+  const Desktop();
 
   @override
-  bool satisfiedBy(Set<FVariant> variants) => variants.any((v) => v is _Desktop);
+  bool satisfiedBy(Set<FVariant> variants) => variants.any((v) => v is Desktop);
 
   @override
-  void _accept(List<String> operands) => operands.add('desktop');
-
-  @override
-  int get _operands => 1;
+  void _accept(List<String> operands, List<int> tiers) {
+    operands.add('desktop');
+    tiers[0] = tiers[0] + 1;
+  }
 
   @override
   String toString() => 'desktop';
 }
 
-class _Windows extends _Desktop {
+class _Windows extends Desktop {
   const _Windows();
 
   @override
   bool satisfiedBy(Set<FVariant> variants) => variants.contains(const _Windows());
 
   @override
-  void _accept(List<String> operands) {
-    super._accept(operands);
-    operands.add('windows');
+  void _accept(List<String> operands, List<int> tiers) {
+    operands
+      ..add('desktop')
+      ..add('windows');
+    tiers[0] = tiers[0] + 2;
   }
-
-  @override
-  int get _operands => 2;
 
   @override
   String toString() => '{desktop, windows}';
 }
 
-class _MacOS extends _Desktop {
+class _MacOS extends Desktop {
   const _MacOS();
 
   @override
   bool satisfiedBy(Set<FVariant> variants) => variants.contains(const _MacOS());
 
   @override
-  void _accept(List<String> operands) {
-    super._accept(operands);
-    operands.add('macOS');
+  void _accept(List<String> operands, List<int> tiers) {
+    operands
+      ..add('desktop')
+      ..add('macOS');
+    tiers[0] = tiers[0] + 2;
   }
-
-  @override
-  int get _operands => 2;
 
   @override
   String toString() => '{desktop, macOS}';
 }
 
-class _Linux extends _Desktop {
+class _Linux extends Desktop {
   const _Linux();
 
   @override
   bool satisfiedBy(Set<FVariant> variants) => variants.contains(const _Linux());
 
   @override
-  void _accept(List<String> operands) {
-    super._accept(operands);
-    operands.add('linux');
+  void _accept(List<String> operands, List<int> tiers) {
+    operands
+      ..add('desktop')
+      ..add('linux');
+    tiers[0] = tiers[0] + 2;
   }
-
-  @override
-  int get _operands => 2;
 
   @override
   String toString() => '{desktop, linux}';
@@ -214,10 +201,10 @@ class _Web implements FVariant {
   bool satisfiedBy(Set<FVariant> variants) => variants.contains(const _Web());
 
   @override
-  void _accept(List<String> operands) => operands.add('web');
-
-  @override
-  int get _operands => 1;
+  void _accept(List<String> operands, List<int> tiers) {
+    operands.add('web');
+    tiers[0] = tiers[0] + 1;
+  }
 
   @override
   String toString() => 'web';

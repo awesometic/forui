@@ -6,9 +6,14 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
+import 'package:forui/src/theme/variant.dart';
 import 'package:forui/src/widgets/autocomplete/autocomplete_content.dart';
 import 'package:forui/src/widgets/autocomplete/autocomplete_controller.dart';
 
+@Variants('FAutocompleteSection', {
+  'disabled': (2, 'The semantic variant when this widget is disabled and cannot be interacted with.'),
+})
 part 'autocomplete_item.design.dart';
 
 /// A marker interface which denotes that mixed-in widgets can be used in a [FAutocomplete].
@@ -21,7 +26,7 @@ mixin FAutocompleteItemMixin on Widget {
   static FAutocompleteSection section({
     required Widget label,
     required List<String> items,
-    FAutocompleteSectionStyle Function(FAutocompleteSectionStyle style)? style,
+    FAutocompleteSectionStyleDelta style = const .inherit(),
     bool? enabled,
     FItemDivider divider = .none,
     Key? key,
@@ -33,7 +38,7 @@ mixin FAutocompleteItemMixin on Widget {
   static FAutocompleteSection richSection({
     required Widget label,
     required List<FAutocompleteItem> children,
-    FAutocompleteSectionStyle Function(FAutocompleteSectionStyle style)? style,
+    FAutocompleteSectionStyleDelta style = const .inherit(),
     bool? enabled,
     FItemDivider divider = .none,
     Key? key,
@@ -46,7 +51,7 @@ mixin FAutocompleteItemMixin on Widget {
   /// This function is a shorthand for [FAutocompleteItem.new].
   static FAutocompleteItem item({
     required String value,
-    FItemStyle Function(FItemStyle style)? style,
+    FItemStyleDelta style = const .inherit(),
     bool? enabled,
     Widget? prefix,
     Widget? title,
@@ -70,7 +75,7 @@ mixin FAutocompleteItemMixin on Widget {
   static FAutocompleteItem rawItem({
     required Widget child,
     required String value,
-    FItemStyle Function(FItemStyle style)? style,
+    FItemStyleDelta style = const .inherit(),
     bool? enabled,
     Widget? prefix,
     Key? key,
@@ -81,13 +86,23 @@ mixin FAutocompleteItemMixin on Widget {
 class FAutocompleteSection extends StatelessWidget with FAutocompleteItemMixin {
   /// The style. Defaults to the [FAutocompleteSectionStyle] inherited from the parent [FAutocomplete].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FAutocompleteSectionStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create autocomplete-section
   /// ```
-  final FAutocompleteSectionStyle Function(FAutocompleteSectionStyle style)? style;
+  final FAutocompleteSectionStyleDelta style;
 
   /// True if the section is enabled. Disabled sections cannot be selected, and is skipped during traversal.
   ///
@@ -112,7 +127,7 @@ class FAutocompleteSection extends StatelessWidget with FAutocompleteItemMixin {
   FAutocompleteSection({
     required Widget label,
     required List<String> items,
-    FAutocompleteSectionStyle Function(FAutocompleteSectionStyle style)? style,
+    FAutocompleteSectionStyleDelta style = const .inherit(),
     bool? enabled,
     FItemDivider divider = .none,
     Key? key,
@@ -131,7 +146,7 @@ class FAutocompleteSection extends StatelessWidget with FAutocompleteItemMixin {
   const FAutocompleteSection.rich({
     required this.label,
     required this.children,
-    this.style,
+    this.style = const .inherit(),
     this.enabled,
     this.divider = .none,
     super.key,
@@ -141,8 +156,7 @@ class FAutocompleteSection extends StatelessWidget with FAutocompleteItemMixin {
   Widget build(BuildContext context) {
     final content = ContentData.of(context);
     final enabled = this.enabled ?? content.enabled;
-    final style = this.style?.call(content.style) ?? content.style;
-    final itemStyle = style.itemStyle;
+    final style = this.style(content.style);
 
     return ContentData(
       style: style,
@@ -152,7 +166,7 @@ class FAutocompleteSection extends StatelessWidget with FAutocompleteItemMixin {
         crossAxisAlignment: .start,
         children: [
           DefaultTextStyle.merge(
-            style: style.labelTextStyle.resolve({if (!enabled) .disabled}),
+            style: style.labelTextStyle.resolve({if (!enabled) FAutocompleteSectionVariant.disabled}),
             child: Padding(padding: style.labelPadding, child: label),
           ),
           if (children.firstOrNull case final first?)
@@ -160,7 +174,7 @@ class FAutocompleteSection extends StatelessWidget with FAutocompleteItemMixin {
               style: style,
               enabled: enabled,
               child: FInheritedItemData.merge(
-                style: itemStyle,
+                style: style.itemStyle,
                 divider: divider,
                 index: 0,
                 last: children.length == 1,
@@ -169,7 +183,7 @@ class FAutocompleteSection extends StatelessWidget with FAutocompleteItemMixin {
             ),
           for (final (i, child) in children.indexed.skip(1))
             FInheritedItemData.merge(
-              style: itemStyle,
+              style: style.itemStyle,
               divider: divider,
               index: i,
               last: i == children.length - 1,
@@ -193,22 +207,16 @@ class FAutocompleteSection extends StatelessWidget with FAutocompleteItemMixin {
 /// A [FAutocompleteSection]'s style.
 class FAutocompleteSectionStyle with Diagnosticable, _$FAutocompleteSectionStyleFunctions {
   /// The enabled label's text style.
-  ///
-  /// Supported states:
-  /// * [WidgetState.disabled]
   @override
-  final FWidgetStateMap<TextStyle> labelTextStyle;
+  final FVariants<FAutocompleteSectionVariantConstraint, TextStyle, TextStyleDelta> labelTextStyle;
 
   /// The padding around the label. Defaults to `EdgeInsetsDirectional.only(start: 15, top: 7.5, bottom: 7.5, end: 10)`.
   @override
   final EdgeInsetsGeometry labelPadding;
 
   /// The divider's style.
-  ///
-  /// Supported states:
-  /// * [WidgetState.disabled]
   @override
-  final FWidgetStateMap<Color> dividerColor;
+  final FVariants<FItemGroupVariantConstraint, Color, Delta> dividerColor;
 
   /// The divider's width.
   @override
@@ -234,47 +242,43 @@ class FAutocompleteSectionStyle with Diagnosticable, _$FAutocompleteSectionStyle
     required FTypography typography,
   }) {
     const padding = EdgeInsetsDirectional.only(start: 11, top: 7.5, bottom: 7.5, end: 6);
-    final iconStyle = FWidgetStateMap({
-      WidgetState.disabled: IconThemeData(color: colors.disable(colors.primary), size: 15),
-      WidgetState.any: IconThemeData(color: colors.primary, size: 15),
-    });
-    final textStyle = FWidgetStateMap({
-      WidgetState.disabled: typography.sm.copyWith(color: colors.disable(colors.primary)),
-      WidgetState.any: typography.sm.copyWith(color: colors.primary),
-    });
-
+    final iconStyle = FVariants<FTappableVariantConstraint, IconThemeData, IconThemeDataDelta>.delta(
+      IconThemeData(color: colors.primary, size: 15),
+      variants: {
+        [.disabled]: .delta(color: colors.disable(colors.primary)),
+      },
+    );
+    final textStyle = FVariants<FTappableVariantConstraint, TextStyle, TextStyleDelta>.delta(
+      typography.sm,
+      variants: {
+        [.disabled]: .delta(color: colors.disable(colors.primary)),
+      },
+    );
     return .new(
-      labelTextStyle: FWidgetStateMap({
-        WidgetState.disabled: typography.sm.copyWith(
-          color: colors.disable(colors.primary),
-          fontWeight: FontWeight.w600,
-        ),
-        WidgetState.any: typography.sm.copyWith(color: colors.primary, fontWeight: FontWeight.w600),
-      }),
+      labelTextStyle: .delta(
+        typography.sm.copyWith(color: colors.primary, fontWeight: .w600),
+        variants: {
+          [.disabled]: .delta(color: colors.disable(colors.primary)),
+        },
+      ),
       dividerColor: .all(colors.border),
       dividerWidth: style.borderWidth,
       itemStyle: FItemStyle(
-        backgroundColor: .all(null),
-        decoration: FWidgetStateMap({
-          ~WidgetState.disabled & (WidgetState.focused | WidgetState.hovered | WidgetState.pressed): BoxDecoration(
-            color: colors.secondary,
-            borderRadius: style.borderRadius,
-          ),
-        }),
+        backgroundColor: const .all(null),
+        decoration: FVariants(
+          const BoxDecoration(),
+          variants: {
+            [.disabled]: const BoxDecoration(),
+            [.focused, .hovered, .pressed]: BoxDecoration(color: colors.secondary, borderRadius: style.borderRadius),
+          },
+        ),
         contentStyle: .inherit(colors: colors, typography: typography).copyWith(
           padding: padding,
-          prefixIconStyle: iconStyle,
+          prefixIconStyle: .value(iconStyle),
           prefixIconSpacing: 10,
-          titleTextStyle: textStyle,
+          titleTextStyle: .value(textStyle),
           titleSpacing: 4,
-          subtitleTextStyle: FWidgetStateMap({
-            WidgetState.disabled: typography.xs.copyWith(color: colors.disable(colors.mutedForeground)),
-            WidgetState.any: typography.xs.copyWith(color: colors.mutedForeground),
-          }),
-          suffixIconStyle: FWidgetStateMap({
-            WidgetState.disabled: IconThemeData(color: colors.disable(colors.primary), size: 15),
-            WidgetState.any: IconThemeData(color: colors.primary, size: 15),
-          }),
+          suffixIconStyle: .value(iconStyle),
         ),
         rawItemContentStyle: FRawItemContentStyle(
           padding: padding,
@@ -292,13 +296,23 @@ class FAutocompleteSectionStyle with Diagnosticable, _$FAutocompleteSectionStyle
 abstract class FAutocompleteItem extends StatelessWidget with FAutocompleteItemMixin {
   /// The style. Defaults to the [FItemStyle] inherited from the parent [FAutocompleteSection] or [FAutocomplete].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FItemStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create autocomplete-section
   /// ```
-  final FItemStyle Function(FItemStyle style)? style;
+  final FItemStyleDelta style;
 
   /// The value.
   final String value;
@@ -318,7 +332,7 @@ abstract class FAutocompleteItem extends StatelessWidget with FAutocompleteItemM
   /// {@endtemplate}
   factory FAutocompleteItem({
     required String value,
-    FItemStyle Function(FItemStyle style)? style,
+    FItemStyleDelta style,
     bool? enabled,
     Widget? prefix,
     Widget? title,
@@ -335,7 +349,7 @@ abstract class FAutocompleteItem extends StatelessWidget with FAutocompleteItemM
   /// For even more control over the item's appearance, use [FAutocompleteItem.raw].
   factory FAutocompleteItem.item({
     required String value,
-    FItemStyle Function(FItemStyle style)? style,
+    FItemStyleDelta style,
     bool? enabled,
     Widget? prefix,
     Widget? title,
@@ -353,13 +367,13 @@ abstract class FAutocompleteItem extends StatelessWidget with FAutocompleteItemM
   factory FAutocompleteItem.raw({
     required Widget child,
     required String value,
-    FItemStyle Function(FItemStyle style)? style,
+    FItemStyleDelta style,
     bool? enabled,
     Widget? prefix,
     Key? key,
   }) = _RawAutocompleteItem;
 
-  const FAutocompleteItem._({required this.value, this.style, this.enabled, this.prefix, super.key});
+  const FAutocompleteItem._({required this.value, this.style = const .inherit(), this.enabled, this.prefix, super.key});
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -394,10 +408,9 @@ class _AutocompleteItem extends FAutocompleteItem {
     final content = ContentData.of(context);
 
     final enabled = this.enabled ?? content.enabled;
-    final style = this.style?.call(content.style.itemStyle);
 
     return FItem(
-      style: style?.call,
+      style: style,
       enabled: enabled,
       onPress: () => onPress(value),
       onFocusChange: (focused) {
@@ -431,10 +444,9 @@ class _RawAutocompleteItem extends FAutocompleteItem {
     final content = ContentData.of(context);
 
     final enabled = this.enabled ?? content.enabled;
-    final style = this.style?.call(content.style.itemStyle);
 
     return FItem.raw(
-      style: style?.call,
+      style: style,
       enabled: enabled,
       onPress: () => onPress(value),
       onFocusChange: (focused) {

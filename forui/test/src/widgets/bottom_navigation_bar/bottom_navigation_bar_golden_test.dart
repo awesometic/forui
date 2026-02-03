@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -83,9 +81,9 @@ void main() {
                 children: [
                   const Text('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
                   FBottomNavigationBar(
-                    style: theme.data.bottomNavigationBarStyle.copyWith(
-                      backgroundFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                      decoration: BoxDecoration(color: theme.data.colors.background.withValues(alpha: 0.5)),
+                    style: .delta(
+                      backgroundFilter: .blur(sigmaX: 5, sigmaY: 5),
+                      decoration: .value(BoxDecoration(color: theme.data.colors.background.withValues(alpha: 0.5))),
                     ),
                     index: 2,
                     children: const [

@@ -1,48 +1,33 @@
-import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:meta/meta.dart';
-
-/// Matches F at the start only if followed by an uppercase letter.
-final _f = RegExp('^F(?=[A-Z])');
 
 /// Generates widget-specific variant and variant constraint extension types.
 @internal
 class VariantExtensionType {
-  static const _platforms = {
-    'touch': '/// Matches all touch-based platforms, [android], [iOS] and [fuchsia].',
-    'android':
-        '/// The Android platform variant.\n'
-        '///\n'
-        '/// More specific than [touch] in variant resolution.',
-    'iOS':
-        '/// The iOS platform variant.\n'
-        '///\n'
-        '/// More specific than [touch] in variant resolution.',
-    'fuchsia':
-        '/// The Fuchsia platform variant.\n'
-        '///\n'
-        '/// More specific than [touch] in variant resolution.',
-    'desktop': '/// Matches all desktop-based platforms, [windows], [macOS] and [linux].',
-    'windows':
-        '/// The Windows platform variant.\n'
-        '///\n'
-        '/// More specific than [desktop] in variant resolution.',
-    'macOS':
-        '/// The macOS platform variant.\n'
-        '///\n'
-        '/// More specific than [desktop] in variant resolution.',
-    'linux':
-        '/// The Linux platform variant.\n'
-        '///\n'
-        '/// More specific than [desktop] in variant resolution.',
-    'web':
-        '/// The web platform variant.\n'
-        '///\n'
-        '/// Standalone platform that is neither [touch] nor [desktop].',
+  static const _platformCategories = {
+    'touch': (
+      'Touch()',
+      '/// A platform variant that matches all touch-based platforms, [android], [iOS] and [fuchsia].',
+    ),
+    'desktop': (
+      'Desktop()',
+      '/// A platform variant that matches all desktop-based platforms, [windows], [macOS] and [linux].',
+    ),
   };
 
-  /// The widget name.
-  final String widget;
+  static const _platformVariants = {
+    'android': '/// The Android platform variant.',
+    'iOS': '/// The iOS platform variant.',
+    'fuchsia': '/// The Fuchsia platform variant.',
+
+    'windows': '/// The Windows platform variant.',
+    'macOS': '/// The macOS platform variant.',
+    'linux': '/// The Linux platform variant.',
+    'web': '/// The web platform variant.',
+  };
+
+  /// The style name.
+  final String prefix;
 
   /// The variant constraint name.
   final String constraint;
@@ -50,23 +35,22 @@ class VariantExtensionType {
   /// The variant name.
   final String variant;
 
-  /// The variants and their documentation.
-  final Map<String, String> variants;
+  /// The variants and their tier and documentation.
+  final Map<String, (int, String)> variants;
 
   /// Creates a new [VariantExtensionType].
-  VariantExtensionType(InterfaceType widget, this.variants)
-    : widget = widget.element.name!,
-      constraint = 'F${widget.element.name!.replaceFirst(_f, '')}VariantConstraint',
-      variant = 'F${widget.element.name!.replaceFirst(_f, '')}Variant';
+  VariantExtensionType(this.prefix, this.variants)
+    : constraint = '${prefix}VariantConstraint',
+      variant = '${prefix}Variant';
 
   /// Generates the variant constraint extension type.
   ExtensionType generateVariantConstraint() => ExtensionType(
     (b) => b
       ..docs.addAll([
-        '/// Represents a combination of variants which a [$widget] can be styled.',
+        '/// Represents a combination of variants.',
         '///',
         '/// See also:',
-        '/// * [$variant], which represents individual variants for [$widget].',
+        '/// * [$variant], which represents individual variants.',
       ])
       ..constant = true
       ..name = constraint
@@ -78,6 +62,7 @@ class VariantExtensionType {
       )
       ..implements.add(refer('FVariantConstraint'))
       ..fields.addAll(_constraintVariants)
+      ..fields.addAll(_constraintPlatformCategories)
       ..fields.addAll(_constraintPlatformVariants)
       ..constructors.add(_not)
       ..methods.add(_and),
@@ -85,25 +70,38 @@ class VariantExtensionType {
 
   /// Generates variant fields for the constraint extension type that alias the variant fields.
   List<Field> get _constraintVariants => [
-    for (final MapEntry(key: name, value: documentation) in variants.entries)
+    for (final MapEntry(key: name, value: (_, documentation)) in variants.entries)
       Field(
         (f) => f
           ..docs.add('/// $documentation')
           ..static = true
-          ..modifier = FieldModifier.constant
+          ..modifier = .constant
           ..name = name
           ..assignment = Code('$variant.$name'),
       ),
   ];
 
-  /// Generates platform variant fields for the constraint extension type that alias the variant platform fields.
-  List<Field> get _constraintPlatformVariants => [
-    for (final MapEntry(key: name, value: documentation) in _platforms.entries)
+  /// Generates platform category fields for the constraint extension type that alias the variant platform category fields.
+  List<Field> get _constraintPlatformCategories => [
+    for (final MapEntry(key: name, value: (constructor, documentation)) in _platformCategories.entries)
       Field(
         (f) => f
           ..docs.addAll(documentation.split('\n'))
           ..static = true
-          ..modifier = FieldModifier.constant
+          ..modifier = .constant
+          ..name = name
+          ..assignment = Code('$variant._($constructor)'),
+      ),
+  ];
+
+  /// Generates platform variant fields for the constraint extension type that alias the variant platform fields.
+  List<Field> get _constraintPlatformVariants => [
+    for (final MapEntry(key: name, value: documentation) in _platformVariants.entries)
+      Field(
+        (f) => f
+          ..docs.addAll(documentation.split('\n'))
+          ..static = true
+          ..modifier = .constant
           ..name = name
           ..assignment = Code('$variant.$name'),
       ),
@@ -113,17 +111,17 @@ class VariantExtensionType {
   Constructor get _not => Constructor(
     (c) => c
       ..factory = true
-      ..docs.addAll(['/// Creates a [$constraint] that negates [constraint].'])
+      ..docs.addAll(['/// Creates a [$constraint] that negates [variant].'])
       ..name = 'not'
       ..requiredParameters.add(
         Parameter(
           (p) => p
-            ..type = refer(constraint)
-            ..name = 'constraint',
+            ..type = refer(variant)
+            ..name = 'variant',
         ),
       )
       ..lambda = true
-      ..body = Code('$constraint._(Not(constraint))'),
+      ..body = Code('$constraint._(Not(variant))'),
   );
 
   /// Generates a method for combining two constraints with a logical AND.
@@ -147,10 +145,12 @@ class VariantExtensionType {
   ExtensionType generateVariant() => ExtensionType(
     (b) => b
       ..docs.addAll([
-        '/// Represents a condition under which a [$widget] can be styled differently.',
+        '/// Represents a variant.',
+        '///',
+        '/// Each variant has a tier that determines its specificity. Higher tiers take precedence during resolution.',
         '///',
         '/// See also:',
-        '/// * [$constraint], which represents combinations of variants for [$widget].',
+        '/// * [$constraint], which represents combinations of variants.',
       ])
       ..constant = true
       ..name = variant
@@ -167,25 +167,25 @@ class VariantExtensionType {
 
   /// Generates variant fields for the variant extension type.
   List<Field> get _variantVariants => [
-    for (final MapEntry(key: name, value: documentation) in variants.entries)
+    for (final MapEntry(key: name, value: (tier, documentation)) in variants.entries)
       Field(
         (f) => f
           ..docs.add('/// $documentation')
           ..static = true
-          ..modifier = FieldModifier.constant
+          ..modifier = .constant
           ..name = name
-          ..assignment = Code("$variant._(.new('$name'))"),
+          ..assignment = Code("$variant._(.new($tier, '$name'))"),
       ),
   ];
 
   /// Generates platform variant fields for the variant extension type.
   List<Field> get _variantPlatformVariants => [
-    for (final MapEntry(key: name, value: documentation) in _platforms.entries)
+    for (final MapEntry(key: name, value: documentation) in _platformVariants.entries)
       Field(
         (f) => f
           ..docs.addAll(documentation.split('\n'))
           ..static = true
-          ..modifier = FieldModifier.constant
+          ..modifier = .constant
           ..name = name
           ..assignment = Code('$variant._(FPlatformVariant.$name)'),
       ),

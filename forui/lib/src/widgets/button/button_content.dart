@@ -32,15 +32,15 @@ class Content extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FButtonData(style: FButtonStyle(:contentStyle), :states) = .of(context);
+    final FButtonData(style: FButtonStyle(:contentStyle), :variants) = .of(context);
     return Padding(
       padding: contentStyle.padding,
       child: DefaultTextStyle.merge(
-        style: contentStyle.textStyle.resolve(states),
+        style: contentStyle.textStyle.resolve(variants),
         child: IconTheme(
-          data: contentStyle.iconStyle.resolve(states),
+          data: contentStyle.iconStyle.resolve(variants),
           child: FInheritedCircularProgressStyle(
-            style: contentStyle.circularProgressStyle.resolve(states),
+            style: contentStyle.circularProgressStyle.resolve(variants),
             child: Row(
               mainAxisAlignment: mainAxisAlignment,
               mainAxisSize: mainAxisSize,
@@ -74,11 +74,11 @@ class IconContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FButtonData(:style, :states) = .of(context);
+    final FButtonData(:style, :variants) = .of(context);
 
     return Padding(
       padding: style.iconContentStyle.padding,
-      child: IconTheme(data: style.iconContentStyle.iconStyle.resolve(states), child: child),
+      child: IconTheme(data: style.iconContentStyle.iconStyle.resolve(variants), child: child),
     );
   }
 }
@@ -86,22 +86,17 @@ class IconContent extends StatelessWidget {
 /// [FButton] content's style.
 class FButtonContentStyle with Diagnosticable, _$FButtonContentStyleFunctions {
   /// The [TextStyle].
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<TextStyle> textStyle;
+  final FVariants<FTappableVariantConstraint, TextStyle, TextStyleDelta> textStyle;
 
   /// The icon's style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<IconThemeData> iconStyle;
+  final FVariants<FTappableVariantConstraint, IconThemeData, IconThemeDataDelta> iconStyle;
 
   /// The circular progress's style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<FCircularProgressStyle> circularProgressStyle;
+  final FVariants<FTappableVariantConstraint, FCircularProgressStyle, FCircularProgressStyleDelta>
+  circularProgressStyle;
 
   /// The padding. Defaults to `EdgeInsets.symmetric(horizontal: 16, vertical: 12.5)`.
   @override
@@ -123,28 +118,32 @@ class FButtonContentStyle with Diagnosticable, _$FButtonContentStyleFunctions {
   /// Creates a [FButtonContentStyle] that inherits its properties.
   FButtonContentStyle.inherit({required FTypography typography, required Color enabled, required Color disabled})
     : this(
-        textStyle: FWidgetStateMap({
-          WidgetState.disabled: typography.base.copyWith(color: disabled, fontWeight: .w500, height: 1),
-          WidgetState.any: typography.base.copyWith(color: enabled, fontWeight: .w500, height: 1),
-        }),
-        iconStyle: FWidgetStateMap({
-          WidgetState.disabled: IconThemeData(color: disabled, size: 20),
-          WidgetState.any: IconThemeData(color: enabled, size: 20),
-        }),
-        circularProgressStyle: FWidgetStateMap({
-          WidgetState.disabled: FCircularProgressStyle(iconStyle: IconThemeData(color: disabled, size: 20)),
-          WidgetState.any: FCircularProgressStyle(iconStyle: IconThemeData(color: enabled, size: 20)),
-        }),
+        textStyle: .delta(
+          typography.base.copyWith(color: enabled, fontWeight: .w500, height: 1),
+          variants: {
+            [.disabled]: .delta(color: disabled),
+          },
+        ),
+        iconStyle: .delta(
+          IconThemeData(color: enabled, size: 20),
+          variants: {
+            [.disabled]: .delta(color: disabled),
+          },
+        ),
+        circularProgressStyle: .delta(
+          FCircularProgressStyle(iconStyle: IconThemeData(color: enabled, size: 20)),
+          variants: {
+            [.disabled]: .delta(iconStyle: .delta(color: disabled)),
+          },
+        ),
       );
 }
 
 /// [FButton] icon content's style.
 class FButtonIconContentStyle with Diagnosticable, _$FButtonIconContentStyleFunctions {
   /// The icon's style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<IconThemeData> iconStyle;
+  final FVariants<FTappableVariantConstraint, IconThemeData, IconThemeDataDelta> iconStyle;
 
   /// The padding. Defaults to `EdgeInsets.all(7.5)`.
   @override
@@ -156,9 +155,11 @@ class FButtonIconContentStyle with Diagnosticable, _$FButtonIconContentStyleFunc
   /// Creates a [FButtonIconContentStyle] that inherits its properties.
   FButtonIconContentStyle.inherit({required Color enabled, required Color disabled})
     : this(
-        iconStyle: FWidgetStateMap({
-          WidgetState.disabled: IconThemeData(color: disabled, size: 20),
-          WidgetState.any: IconThemeData(color: enabled, size: 20),
-        }),
+        iconStyle: .delta(
+          IconThemeData(color: enabled, size: 20),
+          variants: {
+            [.disabled]: .delta(color: disabled),
+          },
+        ),
       );
 }

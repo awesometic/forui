@@ -6,8 +6,18 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
 import 'package:forui/src/foundation/keys.dart';
+import 'package:forui/src/theme/variant.dart';
 
+@Variants('FCheckbox', {
+  'disabled': (2, 'The semantic variant when this widget is disabled and cannot be interacted with.'),
+  'error': (2, 'The semantic variant when this widget is in an error state.'),
+  'selected': (2, 'The semantic variant when this widget is selected/checked.'),
+  'focused': (1, 'The interaction variant when the given widget or any of its descendants have focus.'),
+  'hovered': (1, 'The interaction variant when the user drags their mouse cursor over the given widget.'),
+  'pressed': (1, 'The interaction variant when the user is actively pressing down on the given widget.'),
+})
 part 'checkbox.design.dart';
 
 /// A checkbox control that allows the user to toggle between checked and not checked.
@@ -20,13 +30,23 @@ part 'checkbox.design.dart';
 class FCheckbox extends StatelessWidget {
   /// The style. Defaults to [FThemeData.checkboxStyle].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FCheckboxStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create checkbox
   /// ```
-  final FCheckboxStyle Function(FCheckboxStyle style)? style;
+  final FCheckboxStyleDelta style;
 
   /// The label displayed next to the checkbox.
   final Widget? label;
@@ -62,7 +82,7 @@ class FCheckbox extends StatelessWidget {
 
   /// Creates a [FCheckbox].
   const FCheckbox({
-    this.style,
+    this.style = const .inherit(),
     this.label,
     this.description,
     this.error,
@@ -78,12 +98,8 @@ class FCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style?.call(context.theme.checkboxStyle) ?? context.theme.checkboxStyle;
-    final formStates = {
-      if (!enabled) WidgetState.disabled,
-      if (error != null) WidgetState.error,
-      if (value) WidgetState.selected,
-    };
+    final style = this.style(context.theme.checkboxStyle);
+    final formVariants = <FFormFieldVariant>{if (!enabled) .disabled, if (error != null) .error};
 
     return FTappable(
       style: style.tappableStyle,
@@ -93,14 +109,14 @@ class FCheckbox extends StatelessWidget {
       autofocus: autofocus,
       focusNode: focusNode,
       onFocusChange: onFocusChange,
-      builder: (context, states, _) {
-        states = {...states, ...formStates};
+      builder: (context, tappableVariants, _) {
+        final variants = {...tappableVariants, ...formVariants};
 
-        final iconTheme = style.iconStyle.maybeResolve(states);
-        final decoration = style.decoration.resolve(states);
+        final iconTheme = style.iconStyle.resolve(variants);
+        final decoration = style.decoration.resolve(variants);
         return FLabel(
-          axis: Axis.horizontal,
-          states: formStates,
+          axis: .horizontal,
+          variants: formVariants,
           style: style,
           label: label,
           description: description,
@@ -108,7 +124,7 @@ class FCheckbox extends StatelessWidget {
           // A separate FFocusedOutline is used instead of FTappable's built-in one so that only the checkbox,
           // rather than the entire FLabel, is outlined.
           child: FFocusedOutline(
-            focused: states.contains(WidgetState.focused),
+            focused: tappableVariants.contains(FTappableVariant.focused),
             style: style.focusedOutlineStyle,
             child: AnimatedSwitcher(
               duration: style.motion.fadeInDuration,
@@ -124,9 +140,7 @@ class FCheckbox extends StatelessWidget {
                 dimension: style.size,
                 child: DecoratedBox(
                   decoration: decoration,
-                  child: iconTheme == null
-                      ? const SizedBox()
-                      : IconTheme(data: iconTheme, child: const Icon(FIcons.check)),
+                  child: value ? IconTheme(data: iconTheme, child: const Icon(FIcons.check)) : const SizedBox(),
                 ),
               ),
             ),
@@ -166,22 +180,12 @@ class FCheckboxStyle extends FLabelStyle with _$FCheckboxStyleFunctions {
   final double size;
 
   /// The icon style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.form}
   @override
-  final FWidgetStateMap<IconThemeData> iconStyle;
+  final FVariants<FFormFieldVariantConstraint, IconThemeData, IconThemeDataDelta> iconStyle;
 
   /// The box decoration.
-  ///
-  /// The supported states are:
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.error]
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
-  /// * [WidgetState.selected]
   @override
-  final FWidgetStateMap<BoxDecoration> decoration;
+  final FVariants<FCheckboxVariantConstraint, BoxDecoration, BoxDecorationDelta> decoration;
 
   /// The motion-related properties.
   @override
@@ -210,42 +214,36 @@ class FCheckboxStyle extends FLabelStyle with _$FCheckboxStyleFunctions {
     return .new(
       tappableStyle: style.tappableStyle.copyWith(motion: FTappableMotion.none),
       focusedOutlineStyle: style.focusedOutlineStyle.copyWith(borderRadius: .circular(4)),
-      iconStyle: FWidgetStateMap({
-        WidgetState.selected & WidgetState.error: IconThemeData(color: colors.errorForeground, size: 14),
-        WidgetState.selected & ~WidgetState.disabled: IconThemeData(color: colors.primaryForeground, size: 14),
-        WidgetState.selected & WidgetState.disabled: IconThemeData(
-          color: colors.disable(colors.primaryForeground),
-          size: 14,
-        ),
-      }),
-      decoration: FWidgetStateMap({
-        // Error
-        WidgetState.error & WidgetState.selected: BoxDecoration(borderRadius: style.borderRadius, color: colors.error),
-        WidgetState.error: BoxDecoration(
-          borderRadius: style.borderRadius,
-          border: .all(color: colors.error, width: 0.6),
-          color: colors.background,
-        ),
-
-        // Disabled
-        WidgetState.disabled & WidgetState.selected: BoxDecoration(
-          borderRadius: style.borderRadius,
-          color: colors.disable(colors.primary),
-        ),
-        WidgetState.disabled: BoxDecoration(
-          borderRadius: style.borderRadius,
-          border: .all(color: colors.disable(colors.primary), width: 0.6),
-          color: colors.disable(colors.background),
-        ),
-
-        // Enabled
-        WidgetState.selected: BoxDecoration(borderRadius: style.borderRadius, color: colors.primary),
-        WidgetState.any: BoxDecoration(
+      iconStyle: .delta(
+        IconThemeData(color: colors.primaryForeground, size: 14),
+        variants: {
+          [.disabled.and(.error)]: .delta(color: colors.disable(colors.errorForeground)),
+          [.error]: .delta(color: colors.errorForeground),
+          [.disabled]: .delta(color: colors.disable(colors.primaryForeground)),
+        },
+      ),
+      decoration: .delta(
+        BoxDecoration(
           borderRadius: style.borderRadius,
           border: .all(color: colors.primary, width: 0.6),
           color: colors.background,
         ),
-      }),
+        variants: {
+          [.disabled.and(.error).and(.selected)]: .delta(border: null, color: colors.disable(colors.error)),
+          [.disabled.and(.error)]: .delta(
+            border: .all(color: colors.disable(colors.error), width: 0.6),
+            color: colors.disable(colors.background),
+          ),
+          [.error.and(.selected)]: .delta(border: null, color: colors.error),
+          [.error]: .delta(border: .all(color: colors.error, width: 0.6)),
+          [.disabled.and(.selected)]: .delta(border: null, color: colors.disable(colors.primary)),
+          [.disabled]: .delta(
+            border: .all(color: colors.disable(colors.primary), width: 0.6),
+            color: colors.disable(colors.background),
+          ),
+          [.selected]: .delta(border: null, color: colors.primary),
+        },
+      ),
       labelTextStyle: style.formFieldStyle.labelTextStyle,
       descriptionTextStyle: style.formFieldStyle.descriptionTextStyle,
       errorTextStyle: style.formFieldStyle.errorTextStyle,

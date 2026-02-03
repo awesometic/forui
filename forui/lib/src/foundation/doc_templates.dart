@@ -72,35 +72,6 @@ extension Focus on Never {
 }
 
 @internal
-extension WidgetStates on Never {
-  /// {@template forui.foundation.doc_templates.WidgetStates.form}
-  ///  Supported states:
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.error]
-  /// {@endtemplate}
-  static const form = '';
-
-  /// {@template forui.foundation.doc_templates.WidgetStates.selectable}
-  ///  Supported states:
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.selected]
-  /// {@endtemplate}
-  static const selectable = '';
-
-  /// {@template forui.foundation.doc_templates.WidgetStates.tappable}
-  ///  Supported states:
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
-  /// * [WidgetState.disabled]
-  /// {@endtemplate}
-  static const tappable = '';
-}
-
-@internal
 extension Semantics on Never {
   /// {@template forui.foundation.doc_templates.semanticsLabel}
   /// The semantic label used by accessibility frameworks.

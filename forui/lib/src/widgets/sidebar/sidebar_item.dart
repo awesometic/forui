@@ -21,13 +21,23 @@ part 'sidebar_item.design.dart';
 class FSidebarItem extends StatefulWidget {
   /// The sidebar item's style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FSidebarItemStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create sidebar
   /// ```
-  final FSidebarItemStyle Function(FSidebarItemStyle style)? style;
+  final FSidebarItemStyleDelta style;
 
   /// The icon to display before the label.
   final Widget? icon;
@@ -58,15 +68,15 @@ class FSidebarItem extends StatefulWidget {
   /// Called when the hover state changes.
   final ValueChanged<bool>? onHoverChange;
 
-  /// Called when the state changes.
-  final ValueChanged<FWidgetStatesDelta>? onStateChange;
+  /// Called when the variant changes.
+  final FTappableVariantChangeCallback? onVariantChange;
 
   /// The sidebar item's children.
   final List<Widget> children;
 
   /// Creates a [FSidebarItem].
   const FSidebarItem({
-    this.style,
+    this.style = const .inherit(),
     this.icon,
     this.label,
     this.selected = false,
@@ -76,7 +86,7 @@ class FSidebarItem extends StatefulWidget {
     this.onPress,
     this.onLongPress,
     this.onHoverChange,
-    this.onStateChange,
+    this.onVariantChange,
     this.children = const [],
     super.key,
   });
@@ -96,7 +106,7 @@ class FSidebarItem extends StatefulWidget {
       ..add(ObjectFlagProperty.has('onPress', onPress))
       ..add(ObjectFlagProperty.has('onLongPress', onLongPress))
       ..add(ObjectFlagProperty.has('onHoverChange', onHoverChange))
-      ..add(ObjectFlagProperty.has('onStateChange', onStateChange))
+      ..add(ObjectFlagProperty.has('onVariantChange', onVariantChange))
       ..add(DiagnosticsProperty('children', children));
   }
 }
@@ -131,13 +141,11 @@ class _FSidebarItemState extends State<FSidebarItem> with TickerProviderStateMix
   }
 
   void _update() {
-    final groupData = FSidebarGroupData.maybeOf(context);
-    final sidebarData = FSidebarData.maybeOf(context);
-    final inheritedStyle =
-        groupData?.style.itemStyle ??
-        sidebarData?.style.groupStyle.itemStyle ??
-        context.theme.sidebarStyle.groupStyle.itemStyle;
-    final style = widget.style?.call(inheritedStyle) ?? inheritedStyle;
+    final style = widget.style(
+      FSidebarGroupData.maybeOf(context)?.style.itemStyle ??
+          FSidebarData.maybeOf(context)?.style.groupStyle.itemStyle ??
+          context.theme.sidebarStyle.groupStyle.itemStyle,
+    );
 
     if (_style != style) {
       _style = style;
@@ -196,10 +204,13 @@ class _FSidebarItemState extends State<FSidebarItem> with TickerProviderStateMix
             : widget.onPress,
         onLongPress: widget.onLongPress,
         onHoverChange: widget.onHoverChange,
-        onStateChange: widget.onStateChange,
-        builder: (_, states, child) => Container(
+        onVariantChange: widget.onVariantChange,
+        builder: (_, variants, child) => Container(
           padding: _style!.padding,
-          decoration: BoxDecoration(color: _style!.backgroundColor.resolve(states), borderRadius: _style!.borderRadius),
+          decoration: BoxDecoration(
+            color: _style!.backgroundColor.resolve(variants),
+            borderRadius: _style!.borderRadius,
+          ),
           child: Row(
             spacing: _style!.collapsibleIconSpacing,
             mainAxisAlignment: .spaceBetween,
@@ -208,17 +219,17 @@ class _FSidebarItemState extends State<FSidebarItem> with TickerProviderStateMix
                 child: Row(
                   spacing: _style!.iconSpacing,
                   children: [
-                    if (widget.icon != null) IconTheme(data: _style!.iconStyle.resolve(states), child: widget.icon!),
+                    if (widget.icon != null) IconTheme(data: _style!.iconStyle.resolve(variants), child: widget.icon!),
                     if (widget.label != null)
                       Expanded(
-                        child: DefaultTextStyle.merge(style: _style!.textStyle.resolve(states), child: widget.label!),
+                        child: DefaultTextStyle.merge(style: _style!.textStyle.resolve(variants), child: widget.label!),
                       ),
                   ],
                 ),
               ),
               if (widget.children.isNotEmpty)
                 IconTheme(
-                  data: _style!.collapsibleIconStyle.resolve(states),
+                  data: _style!.collapsibleIconStyle.resolve(variants),
                   child: RotationTransition(turns: _iconRotation!, child: const Icon(FIcons.chevronRight)),
                 ),
             ],
@@ -258,30 +269,24 @@ class _FSidebarItemState extends State<FSidebarItem> with TickerProviderStateMix
 /// The style for a [FSidebarItem].
 class FSidebarItemStyle with Diagnosticable, _$FSidebarItemStyleFunctions {
   /// The label's text style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<TextStyle> textStyle;
+  final FVariants<FTappableVariantConstraint, TextStyle, TextStyleDelta> textStyle;
 
   /// The spacing between the icon and label. Defaults to 8.
   @override
   final double iconSpacing;
 
   /// The icon's style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<IconThemeData> iconStyle;
+  final FVariants<FTappableVariantConstraint, IconThemeData, IconThemeDataDelta> iconStyle;
 
   /// The spacing between the label and collapsible widget. Defaults to 8.
   @override
   final double collapsibleIconSpacing;
 
   /// The collapsible icon's style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<IconThemeData> collapsibleIconStyle;
+  final FVariants<FTappableVariantConstraint, IconThemeData, IconThemeDataDelta> collapsibleIconStyle;
 
   /// The spacing between child items. Defaults to 2.
   @override
@@ -292,10 +297,8 @@ class FSidebarItemStyle with Diagnosticable, _$FSidebarItemStyleFunctions {
   final EdgeInsetsGeometry childrenPadding;
 
   /// The background color.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<Color> backgroundColor;
+  final FVariants<FTappableVariantConstraint, Color, Delta> backgroundColor;
 
   /// The padding around the content. Defaults to `EdgeInsets.symmetric(horizontal: 12, vertical: 10)`.
   @override
@@ -337,31 +340,31 @@ class FSidebarItemStyle with Diagnosticable, _$FSidebarItemStyleFunctions {
   /// Creates a [FSidebarItemStyle] that inherits its properties.
   FSidebarItemStyle.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
-        textStyle: FWidgetStateMap({
-          WidgetState.disabled: typography.base.copyWith(
-            color: colors.mutedForeground,
-            height: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          WidgetState.any: typography.base.copyWith(
-            color: colors.foreground,
-            height: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        }),
-        iconStyle: FWidgetStateMap({
-          WidgetState.disabled: IconThemeData(color: colors.mutedForeground, size: 16),
-          WidgetState.any: IconThemeData(color: colors.foreground, size: 16),
-        }),
-        collapsibleIconStyle: FWidgetStateMap({
-          WidgetState.disabled: IconThemeData(color: colors.mutedForeground, size: 16),
-          WidgetState.any: IconThemeData(color: colors.foreground, size: 16),
-        }),
-        backgroundColor: FWidgetStateMap({
-          WidgetState.disabled: Colors.transparent,
-          WidgetState.selected | WidgetState.hovered | WidgetState.pressed: colors.hover(colors.secondary),
-          WidgetState.any: Colors.transparent,
-        }),
+        textStyle: .delta(
+          typography.base.copyWith(color: colors.foreground, overflow: .ellipsis, height: 1),
+          variants: {
+            [.disabled]: .delta(color: colors.mutedForeground),
+          },
+        ),
+        iconStyle: .delta(
+          IconThemeData(color: colors.foreground, size: 16),
+          variants: {
+            [.disabled]: .delta(color: colors.mutedForeground),
+          },
+        ),
+        collapsibleIconStyle: .delta(
+          IconThemeData(color: colors.foreground, size: 16),
+          variants: {
+            [.disabled]: .delta(color: colors.mutedForeground),
+          },
+        ),
+        backgroundColor: FVariants(
+          Colors.transparent,
+          variants: {
+            [.disabled]: Colors.transparent,
+            [.selected, .hovered, .pressed]: colors.hover(colors.secondary),
+          },
+        ),
         borderRadius: style.borderRadius,
         tappableStyle: style.tappableStyle.copyWith(motion: FTappableMotion.none),
         focusedOutlineStyle: style.focusedOutlineStyle.copyWith(spacing: 0),

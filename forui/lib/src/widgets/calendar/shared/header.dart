@@ -59,7 +59,7 @@ class _HeaderState extends State<Header> with SingleTickerProviderStateMixin {
       .yearMonth => .day,
     },
     excludeSemantics: true,
-    builder: (_, states, _) => SizedBox(
+    builder: (_, variants, _) => SizedBox(
       height: Header.height,
       child: Padding(
         padding: const .symmetric(horizontal: 15),
@@ -80,7 +80,7 @@ class _HeaderState extends State<Header> with SingleTickerProviderStateMixin {
                 padding: const .all(2.0),
                 child: IconTheme(
                   data: widget.style.buttonStyle.iconContentStyle.iconStyle
-                      .resolve(states)
+                      .resolve(variants)
                       .copyWith(color: widget.style.headerTextStyle.color),
                   child: const Icon(FIcons.chevronRight, size: 15),
                 ),
@@ -191,20 +191,23 @@ class FCalendarHeaderStyle with Diagnosticable, _$FCalendarHeaderStyleFunctions 
     required FColors colors,
     required FTypography typography,
     required FStyle style,
-  }) {
-    final outline = FButtonStyles.inherit(colors: colors, typography: typography, style: style).outline;
-    return .new(
-      focusedOutlineStyle: style.focusedOutlineStyle,
-      buttonStyle: outline.copyWith(
-        decoration: outline.decoration.map((d) => d.copyWith(borderRadius: .circular(4))),
-        iconContentStyle: FButtonIconContentStyle(
-          iconStyle: FWidgetStateMap({
-            WidgetState.disabled: IconThemeData(color: colors.disable(colors.mutedForeground), size: 17),
-            WidgetState.any: IconThemeData(color: colors.mutedForeground, size: 17),
-          }),
+  }) => .new(
+    focusedOutlineStyle: style.focusedOutlineStyle,
+    buttonStyle: FButtonStyles.inherit(colors: colors, typography: typography, style: style)
+        .resolve({FButtonVariant.outline})
+        .copyWith(
+          decoration: .apply([.onAll(.delta(borderRadius: .circular(4)))]),
+          iconContentStyle: .delta(
+            iconStyle: .value(
+              .delta(
+                IconThemeData(color: colors.mutedForeground, size: 17),
+                variants: {
+                  [.disabled]: .delta(color: colors.disable(colors.mutedForeground)),
+                },
+              ),
+            ),
+          ),
         ),
-      ),
-      headerTextStyle: typography.base.copyWith(color: colors.primary, fontWeight: .w600),
-    );
-  }
+    headerTextStyle: typography.base.copyWith(color: colors.primary, fontWeight: .w600),
+  );
 }

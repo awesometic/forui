@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
+import 'package:forui/src/theme/delta.dart';
 import 'package:forui/src/widgets/item/item_content.dart';
 import 'package:forui/src/widgets/item/raw_item_content.dart';
 
+@Sentinels(FItemStyle, {'focusedOutlineStyle': 'focusedOutlineStyleSentinel'})
 part 'item.design.dart';
 
 /// A marker interface which denotes that mixed-in widgets is an item.
@@ -16,7 +19,7 @@ mixin FItemMixin on Widget {
   /// This function is a shorthand for [FItem.new].
   static FItem item({
     required Widget title,
-    FItemStyle Function(FItemStyle style)? style,
+    FItemStyleDelta style = const .inherit(),
     bool? enabled,
     bool selected = false,
     String? semanticsLabel,
@@ -24,7 +27,7 @@ mixin FItemMixin on Widget {
     FocusNode? focusNode,
     ValueChanged<bool>? onFocusChange,
     ValueChanged<bool>? onHoverChange,
-    ValueChanged<FWidgetStatesDelta>? onStateChange,
+    FTappableVariantChangeCallback? onVariantChange,
     VoidCallback? onPress,
     VoidCallback? onLongPress,
     VoidCallback? onSecondaryPress,
@@ -46,7 +49,7 @@ mixin FItemMixin on Widget {
     focusNode: focusNode,
     onFocusChange: onFocusChange,
     onHoverChange: onHoverChange,
-    onStateChange: onStateChange,
+    onVariantChange: onVariantChange,
     onPress: onPress,
     onLongPress: onLongPress,
     onSecondaryPress: onSecondaryPress,
@@ -65,7 +68,7 @@ mixin FItemMixin on Widget {
   /// This function is a shorthand for [FItem.raw].
   static FItem raw({
     required Widget child,
-    FItemStyle Function(FItemStyle style)? style,
+    FItemStyleDelta style = const .inherit(),
     bool? enabled,
     bool selected = false,
     String? semanticsLabel,
@@ -73,7 +76,7 @@ mixin FItemMixin on Widget {
     FocusNode? focusNode,
     ValueChanged<bool>? onFocusChange,
     ValueChanged<bool>? onHoverChange,
-    ValueChanged<FWidgetStatesDelta>? onStateChange,
+    FTappableVariantChangeCallback? onVariantChange,
     VoidCallback? onPress,
     VoidCallback? onLongPress,
     VoidCallback? onSecondaryPress,
@@ -91,7 +94,7 @@ mixin FItemMixin on Widget {
     focusNode: focusNode,
     onFocusChange: onFocusChange,
     onHoverChange: onHoverChange,
-    onStateChange: onStateChange,
+    onVariantChange: onVariantChange,
     onPress: onPress,
     onLongPress: onLongPress,
     onSecondaryPress: onSecondaryPress,
@@ -141,13 +144,23 @@ class FItem extends StatelessWidget with FItemMixin {
   ///
   /// Provide a style to prevent inheritance from [FInheritedItemData].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FItemStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create item
   /// ```
-  final FItemStyle Function(FItemStyle style)? style;
+  final FItemStyleDelta style;
 
   /// Whether the item is enabled. Defaults to true.
   final bool? enabled;
@@ -170,8 +183,8 @@ class FItem extends StatelessWidget with FItemMixin {
   /// {@macro forui.foundation.FTappable.onHoverChange}
   final ValueChanged<bool>? onHoverChange;
 
-  /// {@macro forui.foundation.FTappable.onStateChange}
-  final ValueChanged<FWidgetStatesDelta>? onStateChange;
+  /// {@macro forui.foundation.FTappable.onVariantChange}
+  final FTappableVariantChangeCallback? onVariantChange;
 
   /// A callback for when the item is pressed.
   ///
@@ -220,8 +233,8 @@ class FItem extends StatelessWidget with FItemMixin {
     FItemStyle style,
     double top,
     double bottom,
-    Set<WidgetState> states,
-    FWidgetStateMap<Color>? color,
+    Set<FTappableVariant> variants,
+    FVariants<FItemGroupVariantConstraint, Color, Delta>? color,
     double? width,
     FItemDivider divider,
   )
@@ -252,7 +265,7 @@ class FItem extends StatelessWidget with FItemMixin {
   /// {@endtemplate}
   FItem({
     required Widget title,
-    this.style,
+    this.style = const .inherit(),
     this.enabled,
     this.selected = false,
     this.semanticsLabel,
@@ -260,7 +273,7 @@ class FItem extends StatelessWidget with FItemMixin {
     this.focusNode,
     this.onFocusChange,
     this.onHoverChange,
-    this.onStateChange,
+    this.onVariantChange,
     this.onPress,
     this.onLongPress,
     this.onSecondaryPress,
@@ -272,12 +285,12 @@ class FItem extends StatelessWidget with FItemMixin {
     Widget? details,
     Widget? suffix,
     super.key,
-  }) : _builder = ((context, style, top, bottom, states, color, width, divider) => ItemContent(
+  }) : _builder = ((context, style, top, bottom, variants, color, width, divider) => ItemContent(
          style: style.contentStyle,
          margin: style.margin,
          top: top,
          bottom: bottom,
-         states: states,
+         variants: variants,
          dividerColor: color,
          dividerWidth: width,
          dividerType: divider,
@@ -302,7 +315,7 @@ class FItem extends StatelessWidget with FItemMixin {
   /// {@endtemplate}
   FItem.raw({
     required Widget child,
-    this.style,
+    this.style = const .inherit(),
     this.enabled,
     this.selected = false,
     this.semanticsLabel,
@@ -310,7 +323,7 @@ class FItem extends StatelessWidget with FItemMixin {
     this.focusNode,
     this.onFocusChange,
     this.onHoverChange,
-    this.onStateChange,
+    this.onVariantChange,
     this.onPress,
     this.onLongPress,
     this.onSecondaryPress,
@@ -319,12 +332,12 @@ class FItem extends StatelessWidget with FItemMixin {
     this.actions,
     Widget? prefix,
     super.key,
-  }) : _builder = ((context, style, top, bottom, states, color, width, divider) => RawItemContent(
+  }) : _builder = ((context, style, top, bottom, variants, color, width, divider) => RawItemContent(
          style: style.rawItemContentStyle,
          margin: style.margin,
          top: top,
          bottom: bottom,
-         states: states,
+         variants: variants,
          dividerColor: color,
          dividerWidth: width,
          dividerType: divider,
@@ -335,11 +348,12 @@ class FItem extends StatelessWidget with FItemMixin {
   @override
   Widget build(BuildContext context) {
     final data = FInheritedItemData.maybeOf(context) ?? const FItemData();
-    final inheritedStyle = data.style ?? context.theme.itemStyle;
-
-    final style = this.style?.call(inheritedStyle) ?? inheritedStyle;
+    final style = this.style(data.style ?? context.theme.itemStyle);
     final enabled = this.enabled ?? data.enabled;
-    final states = {if (!enabled) WidgetState.disabled};
+    final formVariants = <FTappableVariant>{
+      context.platformVariant as FTappableVariant,
+      if (!enabled) FTappableVariant.disabled,
+    };
     final divider = data.divider;
 
     // We increase the bottom margin to draw the divider.
@@ -354,19 +368,19 @@ class FItem extends StatelessWidget with FItemMixin {
 
     if (onPress == null && onLongPress == null && onSecondaryPress == null && onSecondaryLongPress == null) {
       return ColoredBox(
-        color: style.backgroundColor.resolve(states) ?? Colors.transparent,
+        color: style.backgroundColor.resolve(formVariants) ?? Colors.transparent,
         child: Padding(
           padding: margin,
           child: DecoratedBox(
-            decoration: style.decoration.resolve(states) ?? const BoxDecoration(),
-            child: _builder(context, style, top, bottom, states, data.dividerColor, data.dividerWidth, divider),
+            decoration: style.decoration.resolve(formVariants),
+            child: _builder(context, style, top, bottom, formVariants, data.dividerColor, data.dividerWidth, divider),
           ),
         ),
       );
     }
 
     return ColoredBox(
-      color: style.backgroundColor.resolve(states) ?? Colors.transparent,
+      color: style.backgroundColor.resolve(formVariants) ?? Colors.transparent,
       child: Padding(
         padding: margin,
         child: FTappable(
@@ -376,7 +390,7 @@ class FItem extends StatelessWidget with FItemMixin {
           focusNode: focusNode,
           onFocusChange: onFocusChange,
           onHoverChange: onHoverChange,
-          onStateChange: onStateChange,
+          onVariantChange: onVariantChange,
           selected: selected,
           onPress: enabled ? (onPress ?? () {}) : null,
           onLongPress: enabled ? (onLongPress ?? () {}) : null,
@@ -384,18 +398,18 @@ class FItem extends StatelessWidget with FItemMixin {
           onSecondaryLongPress: enabled ? (onSecondaryLongPress ?? () {}) : null,
           shortcuts: shortcuts,
           actions: actions,
-          builder: (context, states, _) => DecoratedBox(
+          builder: (context, variants, _) => DecoratedBox(
             position: .foreground,
             decoration: switch (style.focusedOutlineStyle) {
-              final outline? when states.contains(WidgetState.focused) => BoxDecoration(
+              final outline? when variants.contains(FTappableVariant.focused) => BoxDecoration(
                 border: .all(color: outline.color, width: outline.width),
                 borderRadius: outline.borderRadius,
               ),
               _ => const BoxDecoration(),
             },
             child: DecoratedBox(
-              decoration: style.decoration.maybeResolve(states) ?? const BoxDecoration(),
-              child: _builder(context, style, top, bottom, states, data.dividerColor, data.dividerWidth, divider),
+              decoration: style.decoration.resolve(variants),
+              child: _builder(context, style, top, bottom, variants, data.dividerColor, data.dividerWidth, divider),
             ),
           ),
         ),
@@ -415,7 +429,7 @@ class FItem extends StatelessWidget with FItemMixin {
       ..add(DiagnosticsProperty('focusNode', focusNode))
       ..add(ObjectFlagProperty.has('onFocusChange', onFocusChange))
       ..add(ObjectFlagProperty.has('onHoverChange', onHoverChange))
-      ..add(ObjectFlagProperty.has('onChange', onStateChange))
+      ..add(ObjectFlagProperty.has('onVariantChange', onVariantChange))
       ..add(ObjectFlagProperty.has('onPress', onPress))
       ..add(ObjectFlagProperty.has('onLongPress', onLongPress))
       ..add(ObjectFlagProperty.has('onSecondaryPress', onSecondaryPress))
@@ -433,11 +447,8 @@ class FItemStyle with Diagnosticable, _$FItemStyleFunctions {
   /// it is not visible if [decoration] has a background color.
   ///
   /// This is useful for setting a background color when [margin] is not zero.
-  ///
-  /// Supported states:
-  /// * [WidgetState.disabled]
   @override
-  final FWidgetStateMap<Color?> backgroundColor;
+  final FVariants<FTappableVariantConstraint, Color?, Delta> backgroundColor;
 
   /// The margin around the item, including the [decoration].
   ///
@@ -446,19 +457,8 @@ class FItemStyle with Diagnosticable, _$FItemStyleFunctions {
   final EdgeInsetsGeometry margin;
 
   /// The item's decoration.
-  ///
-  /// An [FItem] is considered tappable if [FItem.onPress] or [FItem.onLongPress] is not null.
-  ///
-  /// The supported states if the item is tappable:
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
-  /// * [WidgetState.disabled]
-  ///
-  /// The supported states if the item is untappable:
-  /// * [WidgetState.disabled]
   @override
-  final FWidgetStateMap<BoxDecoration?> decoration;
+  final FVariants<FTappableVariantConstraint, BoxDecoration, BoxDecorationDelta> decoration;
 
   /// The default item content's style.
   @override
@@ -490,21 +490,19 @@ class FItemStyle with Diagnosticable, _$FItemStyleFunctions {
   /// Creates a [FTileGroupStyle] that inherits from the given arguments.
   FItemStyle.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
-        backgroundColor: FWidgetStateMap({
-          WidgetState.disabled: colors.disable(colors.secondary),
-          WidgetState.any: colors.background,
-        }),
-        decoration: FWidgetStateMap({
-          WidgetState.disabled: BoxDecoration(
-            color: colors.disable(colors.secondary),
-            borderRadius: style.borderRadius,
-          ),
-          WidgetState.hovered | WidgetState.pressed: BoxDecoration(
-            color: colors.secondary,
-            borderRadius: style.borderRadius,
-          ),
-          WidgetState.any: BoxDecoration(color: colors.background, borderRadius: style.borderRadius),
-        }),
+        backgroundColor: FVariants(
+          colors.background,
+          variants: {
+            [.disabled]: colors.disable(colors.secondary),
+          },
+        ),
+        decoration: .delta(
+          BoxDecoration(color: colors.background, borderRadius: style.borderRadius),
+          variants: {
+            [.disabled]: .delta(color: colors.disable(colors.secondary)),
+            [.hovered, .pressed]: .delta(color: colors.secondary),
+          },
+        ),
         contentStyle: .inherit(colors: colors, typography: typography),
         rawItemContentStyle: .inherit(colors: colors, typography: typography),
         tappableStyle: style.tappableStyle.copyWith(

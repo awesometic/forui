@@ -25,13 +25,23 @@ class FAccordion extends StatefulWidget {
 
   /// The style. Defaults to [FThemeData.accordionStyle].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FAccordionStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create accordion
   /// ```
-  final FAccordionStyle Function(FAccordionStyle style)? style;
+  final FAccordionStyleDelta style;
 
   /// The individual accordion items and separators.
   ///
@@ -41,7 +51,7 @@ class FAccordion extends StatefulWidget {
   final List<Widget> children;
 
   /// Creates a [FAccordion].
-  const FAccordion({required this.children, this.control = const .managed(), this.style, super.key});
+  const FAccordion({required this.children, this.control = const .managed(), this.style = const .inherit(), super.key});
 
   @override
   State<FAccordion> createState() => _FAccordionState();
@@ -83,18 +93,20 @@ class _FAccordionState extends State<FAccordion> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final style = widget.style?.call(context.theme.accordionStyle) ?? context.theme.accordionStyle;
-    return Column(
-      children: [
-        for (final (index, child) in widget.children.indexed)
-          if (child is FAccordionItemMixin)
-            InheritedAccordionData(index: index, controller: _controller, style: style, child: child)
-          else
-            child,
-      ],
-    );
-  }
+  Widget build(BuildContext context) => Column(
+    children: [
+      for (final (index, child) in widget.children.indexed)
+        if (child is FAccordionItemMixin)
+          InheritedAccordionData(
+            index: index,
+            controller: _controller,
+            style: widget.style(context.theme.accordionStyle),
+            child: child,
+          )
+        else
+          child,
+    ],
+  );
 }
 
 @internal
@@ -136,10 +148,8 @@ class InheritedAccordionData extends InheritedWidget {
 /// The [FAccordion]'s style.
 class FAccordionStyle with Diagnosticable, _$FAccordionStyleFunctions {
   /// The title's text style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.tappable}
   @override
-  final FWidgetStateMap<TextStyle> titleTextStyle;
+  final FVariants<FTappableVariantConstraint, TextStyle, TextStyleDelta> titleTextStyle;
 
   /// The child's default text style.
   @override
@@ -154,10 +164,8 @@ class FAccordionStyle with Diagnosticable, _$FAccordionStyleFunctions {
   final EdgeInsetsGeometry childPadding;
 
   /// The icon's style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.tappable}
   @override
-  final FWidgetStateMap<IconThemeData> iconStyle;
+  final FVariants<FTappableVariantConstraint, IconThemeData, IconThemeDataDelta> iconStyle;
 
   /// The focused outline style.
   @override
@@ -191,14 +199,12 @@ class FAccordionStyle with Diagnosticable, _$FAccordionStyleFunctions {
   /// Creates a [FDividerStyles] that inherits its properties.
   FAccordionStyle.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
-        titleTextStyle: FWidgetStateMap({
-          WidgetState.hovered | WidgetState.pressed: typography.base.copyWith(
-            fontWeight: .w500,
-            color: colors.foreground,
-            decoration: .underline,
-          ),
-          WidgetState.any: typography.base.copyWith(fontWeight: .w500, color: colors.foreground),
-        }),
+        titleTextStyle: .delta(
+          typography.base.copyWith(fontWeight: .w500, color: colors.foreground),
+          variants: {
+            [.hovered, .pressed]: const .delta(decoration: .underline),
+          },
+        ),
         childTextStyle: typography.sm.copyWith(color: colors.foreground),
         iconStyle: .all(IconThemeData(color: colors.mutedForeground, size: 20)),
         focusedOutlineStyle: style.focusedOutlineStyle,

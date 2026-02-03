@@ -25,7 +25,7 @@ void main() {
                     ),
                     actions: [
                       FButton(onPress: () {}, child: const Text('Continue')),
-                      FButton(style: FButtonStyle.outline(), onPress: () {}, child: const Text('Cancel')),
+                      FButton(variants: {.outline}, onPress: () {}, child: const Text('Cancel')),
                     ],
                   ),
                 ),
@@ -49,8 +49,9 @@ void main() {
             child: Builder(
               builder: (context) => FButton(
                 onPress: () => showFDialog(
-                  routeStyle: theme.data.dialogRouteStyle.copyWith(
-                    barrierFilter: (animation) => .blur(sigmaX: animation * 5, sigmaY: animation * 5),
+                  routeStyle: .delta(
+                    barrierFilter: () =>
+                        (animation) => .blur(sigmaX: animation * 5, sigmaY: animation * 5),
                   ),
                   context: context,
                   builder: (context, _, animation) => FDialog(
@@ -61,7 +62,7 @@ void main() {
                     ),
                     actions: [
                       FButton(onPress: () {}, child: const Text('Continue')),
-                      FButton(style: FButtonStyle.outline(), onPress: () {}, child: const Text('Cancel')),
+                      FButton(variants: {.outline}, onPress: () {}, child: const Text('Cancel')),
                     ],
                   ),
                 ),
@@ -84,11 +85,13 @@ void main() {
             child: Builder(
               builder: (context) => FButton(
                 onPress: () => showFDialog(
-                  style: theme.data.dialogStyle.copyWith(
+                  style: .delta(
                     backgroundFilter: (v) => .blur(sigmaX: v * 5, sigmaY: v * 5),
-                    decoration: BoxDecoration(
-                      borderRadius: theme.data.style.borderRadius,
-                      color: theme.data.colors.background.withValues(alpha: 0.5),
+                    decoration: .value(
+                      BoxDecoration(
+                        borderRadius: theme.data.style.borderRadius,
+                        color: theme.data.colors.background.withValues(alpha: 0.5),
+                      ),
                     ),
                   ),
                   context: context,
@@ -101,7 +104,7 @@ void main() {
                     ),
                     actions: [
                       FButton(onPress: () {}, child: const Text('Continue')),
-                      FButton(style: FButtonStyle.outline(), onPress: () {}, child: const Text('Cancel')),
+                      FButton(variants: {.outline}, onPress: () {}, child: const Text('Cancel')),
                     ],
                   ),
                 ),
@@ -152,7 +155,7 @@ void main() {
                 ),
                 actions: [
                   FButton(onPress: () {}, child: const Text('Continue')),
-                  FButton(style: FButtonStyle.outline(), onPress: () {}, child: const Text('Cancel')),
+                  FButton(variants: {.outline}, onPress: () {}, child: const Text('Cancel')),
                 ],
               ),
             ),
@@ -190,7 +193,7 @@ void main() {
               ),
               actions: [
                 FButton(child: const Text('Continue'), onPress: () {}),
-                FButton(style: FButtonStyle.outline(), child: const Text('Cancel'), onPress: () {}),
+                FButton(variants: {.outline}, child: const Text('Cancel'), onPress: () {}),
               ],
             ),
           ),
@@ -213,7 +216,7 @@ void main() {
               ),
               actions: [
                 FButton(child: const Text('Continue'), onPress: () {}),
-                FButton(style: FButtonStyle.outline(), child: const Text('Cancel'), onPress: () {}),
+                FButton(variants: {.outline}, child: const Text('Cancel'), onPress: () {}),
               ],
             ),
           ),

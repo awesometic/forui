@@ -1,8 +1,9 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:meta/meta.dart';
+import 'package:forui/src/foundation/focused_outline.dart';
 
 @internal
 const nonNegativeIntSentinel = -1;
@@ -12,6 +13,9 @@ const stringSentinel = 'stringSentinel';
 
 @internal
 const colorSentinel = _ColorSentinel();
+
+@internal
+const focusedOutlineStyleSentinel = _FocusedOutlineStyleSentinel();
 
 @internal
 const imageFilterSentinel = _ImageFilterSentinel();
@@ -27,10 +31,51 @@ final class _ImageFilterSentinel implements ImageFilter {
   const _ImageFilterSentinel();
 }
 
-/// A mixin for types that can be applied to base value to produce a new value.
-mixin Delta<T> {
-  /// Applies this delta to [value].
-  T call(T value);
+// ignore: avoid_implementing_value_types
+final class _FocusedOutlineStyleSentinel implements FFocusedOutlineStyle {
+  const _FocusedOutlineStyleSentinel();
+
+  @override
+  BorderRadiusGeometry get borderRadius => throw UnimplementedError();
+
+  @override
+  Color get color => throw UnimplementedError();
+
+  @override
+  double get spacing => throw UnimplementedError();
+
+  @override
+  double get width => throw UnimplementedError();
+
+  @override
+  FFocusedOutlineStyle call(Object _) => throw UnimplementedError();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) => throw UnimplementedError();
+
+  @override
+  DiagnosticsNode toDiagnosticsNode({String? name, DiagnosticsTreeStyle? style}) => throw UnimplementedError();
+
+  @override
+  String toStringShort() => throw UnimplementedError();
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) => throw UnimplementedError();
+}
+
+/// A mixin for types that can be applied to a base value to produce a new value.
+mixin Delta {
+  /// Applies this delta to the given value.
+  ///
+  /// This method is covariant because of limitations with Dart's type system. Passing an [Object] to a [Delta] subclass
+  /// will almost always result in a runtime error.
+  ///
+  /// ## Contract
+  /// Subclasses must accept and return the same type. For example, a delta that accepts a [TextStyle] must return a
+  /// [TextStyle]. The [value] may be nullable or non-null depending on the subclass.
+  ///
+  /// In general, deltas for in-built Flutter types accept nullable values, while style deltas do not.
+  Object call(covariant Object? value);
 }
 
 const _borderRadiusSentinel = _BorderRadiusSentinel();
@@ -119,9 +164,9 @@ final class _GradientSentinel extends Gradient {
 }
 
 /// A delta that applies modifications to a [BoxDecoration].
-sealed class BoxDecorationDelta with Delta<BoxDecoration> {
+sealed class BoxDecorationDelta with Delta {
   /// Creates a partial modification of a [BoxDecoration].
-  const factory BoxDecorationDelta.merge({
+  const factory BoxDecorationDelta.delta({
     Color? color,
     DecorationImage? image,
     BoxBorder? border,
@@ -130,13 +175,16 @@ sealed class BoxDecorationDelta with Delta<BoxDecoration> {
     Gradient? gradient,
     BlendMode? Function()? backgroundBlendMode,
     BoxShape? shape,
-  }) = _BoxDecorationMerge;
+  }) = _BoxDecorationDelta;
 
   /// Creates a complete replacement for a [BoxDecoration].
-  const factory BoxDecorationDelta.replace(BoxDecoration decoration) = _BoxDecorationReplace;
+  const factory BoxDecorationDelta.value(BoxDecoration decoration) = _BoxDecorationValue;
+
+  @override
+  BoxDecoration call(BoxDecoration? decoration);
 }
 
-class _BoxDecorationMerge implements BoxDecorationDelta {
+class _BoxDecorationDelta implements BoxDecorationDelta {
   final Color? color;
   final DecorationImage? image;
   final BoxBorder? border;
@@ -146,7 +194,7 @@ class _BoxDecorationMerge implements BoxDecorationDelta {
   final BlendMode? Function()? backgroundBlendMode;
   final BoxShape? shape;
 
-  const _BoxDecorationMerge({
+  const _BoxDecorationDelta({
     this.color = colorSentinel,
     this.image = _decorationImageSentinel,
     this.border = _boxBorderSentinel,
@@ -158,31 +206,31 @@ class _BoxDecorationMerge implements BoxDecorationDelta {
   });
 
   @override
-  BoxDecoration call(BoxDecoration decoration) => BoxDecoration(
-    color: identical(color, colorSentinel) ? decoration.color : color,
-    image: identical(image, _decorationImageSentinel) ? decoration.image : image,
-    border: identical(border, _boxBorderSentinel) ? decoration.border : border,
-    borderRadius: identical(borderRadius, _borderRadiusSentinel) ? decoration.borderRadius : borderRadius,
-    boxShadow: boxShadow ?? decoration.boxShadow,
-    gradient: identical(gradient, _gradientSentinel) ? decoration.gradient : gradient,
-    backgroundBlendMode: backgroundBlendMode != null ? backgroundBlendMode!() : decoration.backgroundBlendMode,
-    shape: shape ?? decoration.shape,
+  BoxDecoration call(BoxDecoration? decoration) => BoxDecoration(
+    color: identical(color, colorSentinel) ? decoration?.color : color,
+    image: identical(image, _decorationImageSentinel) ? decoration?.image : image,
+    border: identical(border, _boxBorderSentinel) ? decoration?.border : border,
+    borderRadius: identical(borderRadius, _borderRadiusSentinel) ? decoration?.borderRadius : borderRadius,
+    boxShadow: boxShadow ?? decoration?.boxShadow,
+    gradient: identical(gradient, _gradientSentinel) ? decoration?.gradient : gradient,
+    backgroundBlendMode: backgroundBlendMode != null ? backgroundBlendMode!() : decoration?.backgroundBlendMode,
+    shape: shape ?? decoration?.shape ?? .rectangle,
   );
 }
 
-class _BoxDecorationReplace implements BoxDecorationDelta {
+class _BoxDecorationValue implements BoxDecorationDelta {
   final BoxDecoration _decoration;
 
-  const _BoxDecorationReplace(this._decoration);
+  const _BoxDecorationValue(this._decoration);
 
   @override
-  BoxDecoration call(BoxDecoration decoration) => _decoration;
+  BoxDecoration call(BoxDecoration? decoration) => _decoration;
 }
 
 /// A delta that applies modifications to an [IconThemeData].
-sealed class IconThemeDataDelta with Delta<IconThemeData> {
+sealed class IconThemeDataDelta with Delta {
   /// Creates a partial modification of an [IconThemeData].
-  const factory IconThemeDataDelta.merge({
+  const factory IconThemeDataDelta.delta({
     Color? color,
     double? opacity,
     double? size,
@@ -192,13 +240,16 @@ sealed class IconThemeDataDelta with Delta<IconThemeData> {
     double? opticalSize,
     List<Shadow>? shadows,
     bool? Function()? applyTextScaling,
-  }) = _IconThemeDataMerge;
+  }) = _IconThemeDataDelta;
 
   /// Creates a complete replacement of an [IconThemeData].
-  const factory IconThemeDataDelta.replace(IconThemeData data) = _IconThemeDataReplace;
+  const factory IconThemeDataDelta.value(IconThemeData data) = _IconThemeDataValue;
+
+  @override
+  IconThemeData call(IconThemeData? data);
 }
 
-class _IconThemeDataMerge implements IconThemeDataDelta {
+class _IconThemeDataDelta implements IconThemeDataDelta {
   final Color? color;
   final double? opacity;
   final double? size;
@@ -209,7 +260,7 @@ class _IconThemeDataMerge implements IconThemeDataDelta {
   final List<Shadow>? shadows;
   final bool? Function()? applyTextScaling;
 
-  const _IconThemeDataMerge({
+  const _IconThemeDataDelta({
     this.color = colorSentinel,
     this.opacity = .infinity,
     this.size = .infinity,
@@ -222,26 +273,26 @@ class _IconThemeDataMerge implements IconThemeDataDelta {
   });
 
   @override
-  IconThemeData call(IconThemeData data) => IconThemeData(
-    color: identical(color, colorSentinel) ? data.color : color,
-    opacity: identical(opacity, double.infinity) ? data.opacity : opacity,
-    size: identical(size, double.infinity) ? data.size : size,
-    fill: identical(fill, double.infinity) ? data.fill : fill,
-    weight: identical(weight, double.infinity) ? data.weight : weight,
-    grade: identical(grade, double.infinity) ? data.grade : grade,
-    opticalSize: identical(opticalSize, double.infinity) ? data.opticalSize : opticalSize,
-    shadows: shadows ?? data.shadows,
-    applyTextScaling: applyTextScaling != null ? applyTextScaling!() : data.applyTextScaling,
+  IconThemeData call(IconThemeData? data) => IconThemeData(
+    color: identical(color, colorSentinel) ? data?.color : color,
+    opacity: identical(opacity, double.infinity) ? data?.opacity : opacity,
+    size: identical(size, double.infinity) ? data?.size : size,
+    fill: identical(fill, double.infinity) ? data?.fill : fill,
+    weight: identical(weight, double.infinity) ? data?.weight : weight,
+    grade: identical(grade, double.infinity) ? data?.grade : grade,
+    opticalSize: identical(opticalSize, double.infinity) ? data?.opticalSize : opticalSize,
+    shadows: shadows ?? data?.shadows,
+    applyTextScaling: applyTextScaling != null ? applyTextScaling!() : data?.applyTextScaling,
   );
 }
 
-class _IconThemeDataReplace implements IconThemeDataDelta {
+class _IconThemeDataValue implements IconThemeDataDelta {
   final IconThemeData _data;
 
-  const _IconThemeDataReplace(this._data);
+  const _IconThemeDataValue(this._data);
 
   @override
-  IconThemeData call(IconThemeData data) => _data;
+  IconThemeData call(IconThemeData? data) => _data;
 }
 
 const _fontWeightSentinel = _FontWeightSentinel();
@@ -264,12 +315,15 @@ final class _TextDecorationSentinel implements TextDecoration {
 
   @override
   bool contains(TextDecoration other) => throw UnimplementedError();
+
+  // This needs to be provided: https://github.com/flutter/flutter/issues/181662
+  int get maskValue => 0;
 }
 
 /// A delta that applies modifications to a [TextStyle].
-sealed class TextStyleDelta with Delta<TextStyle> {
+sealed class TextStyleDelta with Delta {
   /// Creates a partial modification of a [TextStyle].
-  const factory TextStyleDelta.merge({
+  const factory TextStyleDelta.delta({
     bool? inherit,
     Color? color,
     Color? backgroundColor,
@@ -296,13 +350,16 @@ sealed class TextStyleDelta with Delta<TextStyle> {
     List<String>? fontFamilyFallback,
     String? package,
     TextOverflow? Function()? overflow,
-  }) = _Merge;
+  }) = _TextStyleDelta;
 
   /// Creates a complete replacement of a [TextStyle].
-  const factory TextStyleDelta.replace(TextStyle style) = _Replace;
+  const factory TextStyleDelta.value(TextStyle style) = _TextStyleValue;
+
+  @override
+  TextStyle call(TextStyle? style);
 }
 
-class _Merge implements TextStyleDelta {
+class _TextStyleDelta implements TextStyleDelta {
   final bool? inherit;
   final Color? color;
   final Color? backgroundColor;
@@ -330,7 +387,7 @@ class _Merge implements TextStyleDelta {
   final String? package;
   final TextOverflow? Function()? overflow;
 
-  const _Merge({
+  const _TextStyleDelta({
     this.inherit,
     this.color = colorSentinel,
     this.backgroundColor = colorSentinel,
@@ -360,43 +417,43 @@ class _Merge implements TextStyleDelta {
   });
 
   @override
-  TextStyle call(TextStyle style) => TextStyle(
-    inherit: inherit ?? style.inherit,
-    color: identical(color, colorSentinel) ? style.color : color,
-    backgroundColor: identical(backgroundColor, colorSentinel) ? style.backgroundColor : backgroundColor,
-    fontSize: identical(fontSize, double.infinity) ? style.fontSize : fontSize,
-    fontWeight: identical(fontWeight, _fontWeightSentinel) ? style.fontWeight : fontWeight,
-    fontStyle: fontStyle != null ? fontStyle!() : style.fontStyle,
-    letterSpacing: identical(letterSpacing, double.infinity) ? style.letterSpacing : letterSpacing,
-    wordSpacing: identical(wordSpacing, double.infinity) ? style.wordSpacing : wordSpacing,
-    textBaseline: textBaseline != null ? textBaseline!() : style.textBaseline,
-    height: identical(height, double.infinity) ? style.height : height,
-    leadingDistribution: leadingDistribution != null ? leadingDistribution!() : style.leadingDistribution,
-    locale: identical(locale, _locale) ? style.locale : locale,
-    foreground: foreground != null ? foreground!() : style.foreground,
-    background: background != null ? background!() : style.background,
-    shadows: shadows ?? style.shadows,
-    fontFeatures: fontFeatures ?? style.fontFeatures,
-    fontVariations: fontVariations ?? style.fontVariations,
-    decoration: identical(decoration, _textDecorationSentinel) ? style.decoration : decoration,
-    decorationColor: identical(decorationColor, colorSentinel) ? style.decorationColor : decorationColor,
-    decorationStyle: decorationStyle != null ? decorationStyle!() : style.decorationStyle,
+  TextStyle call(TextStyle? style) => TextStyle(
+    inherit: inherit ?? style?.inherit ?? true,
+    color: identical(color, colorSentinel) ? style?.color : color,
+    backgroundColor: identical(backgroundColor, colorSentinel) ? style?.backgroundColor : backgroundColor,
+    fontSize: identical(fontSize, double.infinity) ? style?.fontSize : fontSize,
+    fontWeight: identical(fontWeight, _fontWeightSentinel) ? style?.fontWeight : fontWeight,
+    fontStyle: fontStyle != null ? fontStyle!() : style?.fontStyle,
+    letterSpacing: identical(letterSpacing, double.infinity) ? style?.letterSpacing : letterSpacing,
+    wordSpacing: identical(wordSpacing, double.infinity) ? style?.wordSpacing : wordSpacing,
+    textBaseline: textBaseline != null ? textBaseline!() : style?.textBaseline,
+    height: identical(height, double.infinity) ? style?.height : height,
+    leadingDistribution: leadingDistribution != null ? leadingDistribution!() : style?.leadingDistribution,
+    locale: identical(locale, _locale) ? style?.locale : locale,
+    foreground: foreground != null ? foreground!() : style?.foreground,
+    background: background != null ? background!() : style?.background,
+    shadows: shadows ?? style?.shadows,
+    fontFeatures: fontFeatures ?? style?.fontFeatures,
+    fontVariations: fontVariations ?? style?.fontVariations,
+    decoration: identical(decoration, _textDecorationSentinel) ? style?.decoration : decoration,
+    decorationColor: identical(decorationColor, colorSentinel) ? style?.decorationColor : decorationColor,
+    decorationStyle: decorationStyle != null ? decorationStyle!() : style?.decorationStyle,
     decorationThickness: identical(decorationThickness, double.infinity)
-        ? style.decorationThickness
+        ? style?.decorationThickness
         : decorationThickness,
-    debugLabel: identical(debugLabel, stringSentinel) ? style.debugLabel : debugLabel,
-    fontFamily: identical(fontFamily, stringSentinel) ? style.fontFamily : fontFamily,
-    fontFamilyFallback: fontFamilyFallback ?? style.fontFamilyFallback,
+    debugLabel: identical(debugLabel, stringSentinel) ? style?.debugLabel : debugLabel,
+    fontFamily: identical(fontFamily, stringSentinel) ? style?.fontFamily : fontFamily,
+    fontFamilyFallback: fontFamilyFallback ?? style?.fontFamilyFallback,
     package: package, // Special case, null means no change since it is combined with fontFamily.
-    overflow: overflow != null ? overflow!() : style.overflow,
+    overflow: overflow != null ? overflow!() : style?.overflow,
   );
 }
 
-class _Replace implements TextStyleDelta {
+class _TextStyleValue implements TextStyleDelta {
   final TextStyle _style;
 
-  const _Replace(this._style);
+  const _TextStyleValue(this._style);
 
   @override
-  TextStyle call(TextStyle style) => _style;
+  TextStyle call(TextStyle? style) => _style;
 }

@@ -7,33 +7,29 @@ import 'package:meta/meta.dart';
 /// This will probably be replaced by an augment class in the future.
 @internal
 class DesignFunctionsMixin extends FunctionsMixin {
-  /// The generated call function's docs.
-  @protected
-  final List<String> callDocs;
-
   /// Creates a new [DesignFunctionsMixin].
-  DesignFunctionsMixin(super.element, this.callDocs);
+  DesignFunctionsMixin(super.step, super.element);
 
   /// Generates a mixin.
   @override
-  Mixin generate() =>
+  Future<Mixin> generate() async =>
       (MixinBuilder()
             ..name = '_\$${element.name}Functions'
+            ..implements.add(refer('${element.name}Delta'))
             ..on = refer('Diagnosticable')
-            ..methods.addAll([...getters, _call, if (fields.isNotEmpty) debugFillProperties, equals, hash]))
+            ..methods.addAll([_call, ...await getters, if (fields.isNotEmpty) debugFillProperties, equals, hash]))
           .build();
 
-  /// Generates a special `call` method that allows styles to be used directly.
   Method get _call => Method(
     (m) => m
-      ..docs.addAll(callDocs)
-      ..annotations.add(refer('useResult'))
+      ..docs.addAll(['/// Returns itself.'])
+      ..annotations.add(refer('override'))
       ..returns = refer(element.name!)
       ..name = 'call'
       ..requiredParameters.add(
         Parameter(
           (p) => p
-            ..type = refer('Object?')
+            ..type = refer('Object')
             ..name = '_',
         ),
       )

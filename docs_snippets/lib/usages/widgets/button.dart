@@ -1,14 +1,15 @@
-// ignore_for_file: avoid_redundant_argument_values, prefer_function_declarations_over_variables, sort_child_properties_last
+// ignore_for_file: avoid_redundant_argument_values, sort_child_properties_last
 
 import 'package:flutter/widgets.dart';
 
 import 'package:forui/forui.dart';
 
 final button = FButton(
-  // {@category "Style"}
-  style: FButtonStyle.primary(),
+  // {@category "Variants"}
+  variants: const {},
   // {@endcategory}
   // {@category "Core"}
+  style: const .inherit(),
   selected: false,
   onPress: () {},
   child: const Text('Button'),
@@ -33,15 +34,16 @@ final button = FButton(
   onSecondaryPress: null,
   onSecondaryLongPress: null,
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 
 final icon = FButton.icon(
-  // {@category "Style"}
-  style: FButtonStyle.outline(),
+  // {@category "Variants"}
+  variants: {.outline},
   // {@endcategory}
   // {@category "Core"}
+  style: const .inherit(),
   selected: false,
   onPress: () {},
   child: const Icon(FIcons.mail),
@@ -58,15 +60,16 @@ final icon = FButton.icon(
   onSecondaryPress: null,
   onSecondaryLongPress: null,
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 
 final raw = FButton.raw(
-  // {@category "Style"}
-  style: FButtonStyle.primary(),
+  // {@category "Variants"}
+  variants: const {},
   // {@endcategory}
   // {@category "Core"}
+  style: const .inherit(),
   selected: false,
   onPress: () {},
   child: const Text('Button'),
@@ -83,30 +86,26 @@ final raw = FButton.raw(
   onSecondaryPress: null,
   onSecondaryLongPress: null,
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 
-// {@category "Style" "`FButtonStyle.primary()`"}
-/// The button's primary style.
-final primary = FButtonStyle.primary();
+// {@category "Variants" "Primary"}
+/// The button's primary (base) variant.
+final Set<FButtonVariant> primary = {};
 
-// {@category "Style" "`FButtonStyle.secondary()`"}
-/// The button's secondary style.
-final secondary = FButtonStyle.secondary();
+// {@category "Variants" "Secondary"}
+/// The button's secondary variant.
+final Set<FButtonVariant> secondary = {.secondary};
 
-// {@category "Style" "`FButtonStyle.destructive()`"}
-/// The button's destructive style.
-final destructive = FButtonStyle.destructive();
+// {@category "Variants" "Destructive"}
+/// The button's destructive variant.
+final Set<FButtonVariant> destructive = {.destructive};
 
-// {@category "Style" "`FButtonStyle.outline()`"}
-/// The button's outline style.
-final outline = FButtonStyle.outline();
+// {@category "Variants" "Outline"}
+/// The button's outline variant.
+final Set<FButtonVariant> outline = {.outline};
 
-// {@category "Style" "`FButtonStyle.ghost()`"}
-/// The button's ghost style.
-final ghost = FButtonStyle.ghost();
-
-// {@category "Style" "Custom `FButtonStyle`"}
-/// A custom button style.
-final FButtonStyle Function(FButtonStyle) custom = (style) => style;
+// {@category "Variants" "Ghost"}
+/// The button's ghost variant.
+final Set<FButtonVariant> ghost = {.ghost};

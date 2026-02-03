@@ -49,6 +49,16 @@ part 'persistent_sheet.design.dart';
 ///   * the [context] does not contain a [FSheets] or [FScaffold] ancestor.
 ///   * a sheet with the same [key] already exists.
 ///
+/// To modify the current style:
+/// ```dart
+/// style: .delta(...)
+/// ```
+///
+/// To replace the style:
+/// ```dart
+/// style: FPersistentSheetStyle(...)
+/// ```
+///
 /// ## CLI
 /// To generate and customize this widget's style:
 ///
@@ -67,7 +77,7 @@ FPersistentSheetController showFPersistentSheet({
   required BuildContext context,
   required FLayout side,
   required Widget Function(BuildContext context, FPersistentSheetController controller) builder,
-  FPersistentSheetStyle Function(FPersistentSheetStyle)? style,
+  FPersistentSheetStyleDelta style = const .inherit(),
   double? mainAxisMaxRatio = 9 / 16,
   BoxConstraints constraints = const BoxConstraints(),
   bool draggable = true,
@@ -96,7 +106,7 @@ FPersistentSheetController showFPersistentSheet({
   }
 
   key ??= ValueKey(Random().nextInt(2147483647));
-  final sheetStyle = style?.call(context.theme.persistentSheetStyle) ?? context.theme.persistentSheetStyle;
+  final sheetStyle = style(context.theme.persistentSheetStyle);
 
   final controller = FPersistentSheetController._(
     vsync: state,

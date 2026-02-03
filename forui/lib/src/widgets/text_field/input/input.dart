@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/theme/variant.dart';
 
 @internal
 class Input extends StatefulWidget {
@@ -16,7 +17,7 @@ class Input extends StatefulWidget {
   static Widget defaultContextMenuBuilder(BuildContext _, EditableTextState state) =>
       AdaptiveTextSelectionToolbar.editableText(editableTextState: state);
 
-  static Widget defaultBuilder(BuildContext _, FTextFieldStyle _, Set<WidgetState> _, Widget child) => child;
+  static Widget defaultBuilder(BuildContext _, FTextFieldStyle _, Set<FTextFieldVariant> _, Widget child) => child;
 
   static Widget defaultClearIconBuilder(BuildContext context, FTextFieldStyle style, VoidCallback clear) {
     final localizations = FLocalizations.of(context) ?? FDefaultLocalizations();
@@ -31,7 +32,7 @@ class Input extends StatefulWidget {
   }
 
   final TextEditingController controller;
-  final FTextFieldStyle Function(FTextFieldStyle)? style;
+  final FTextFieldStyleDelta style;
   final FFieldBuilder<FTextFieldStyle> builder;
   final Widget? label;
   final String? hint;
@@ -114,7 +115,7 @@ class Input extends StatefulWidget {
     required this.canRequestFocus,
     required this.clearable,
     required this.clearIconBuilder,
-    this.style,
+    required this.style,
     this.label,
     this.hint,
     this.description,
@@ -272,8 +273,8 @@ class _InputState extends State<Input> {
 
   @override
   Widget build(BuildContext context) {
-    final style = widget.style?.call(context.theme.textFieldStyle) ?? context.theme.textFieldStyle;
-    final states = {..._statesController.value};
+    final style = widget.style(context.theme.textFieldStyle);
+    final variants = toTextFieldVariants(context.platformVariant, _statesController.value);
 
     final textfield = TextField(
       controller: widget.controller,
@@ -284,7 +285,7 @@ class _InputState extends State<Input> {
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       textCapitalization: widget.textCapitalization,
-      style: style.contentTextStyle.resolve(states),
+      style: style.contentTextStyle.resolve(variants),
       textAlign: widget.textAlign,
       textAlignVertical: widget.textAlignVertical,
       textDirection: widget.textDirection,
@@ -321,7 +322,7 @@ class _InputState extends State<Input> {
         final counter = widget.counterBuilder?.call(context, currentLength, maxLength, isFocused);
         return counter == null
             ? null
-            : DefaultTextStyle.merge(style: style.counterTextStyle.resolve(states), child: counter);
+            : DefaultTextStyle.merge(style: style.counterTextStyle.resolve(variants), child: counter);
       },
       selectAllOnFocus: widget.selectAllOnFocus,
       selectionControls: widget.selectionControls,
@@ -341,7 +342,7 @@ class _InputState extends State<Input> {
 
     Widget field = FLabel(
       axis: .vertical,
-      states: states,
+      variants: variants as Set<FFormFieldVariant>,
       label: widget.label,
       style: style,
       description: widget.description,
@@ -349,7 +350,7 @@ class _InputState extends State<Input> {
       // the textfield to fail as it is not smart enough to track the new location of the textfield in the widget tree.
       error: widget.error ?? const SizedBox(),
       expands: widget.expands,
-      child: widget.builder(context, style, states, textfield),
+      child: widget.builder(context, style, variants, textfield),
     );
 
     field = MergeSemantics(
@@ -394,23 +395,24 @@ class _InputState extends State<Input> {
   InputDecoration _decoration(FTextFieldStyle style) {
     final textDirection = Directionality.maybeOf(context) ?? .ltr;
     final padding = style.contentPadding.resolve(textDirection);
-    final states = _statesController.value;
+    final platform = context.platformVariant;
+    final variants = toTextFieldVariants(platform, _statesController.value);
 
-    final suffix = widget.suffixBuilder?.call(context, style, states);
+    final suffix = widget.suffixBuilder?.call(context, style, variants);
     final clear = widget.clearable(widget.controller.value)
         ? widget.clearIconBuilder(context, style, () => widget.controller.text = '')
         : null;
 
     return InputDecoration(
       isDense: true,
-      prefixIcon: widget.prefixBuilder?.call(context, style, states),
+      prefixIcon: widget.prefixBuilder?.call(context, style, variants),
       suffixIcon: switch ((suffix, clear)) {
-        (final icon?, final clear?) when !states.contains(WidgetState.disabled) => Row(
+        (final icon?, final clear?) when widget.enabled => Row(
           mainAxisAlignment: .end,
           mainAxisSize: .min,
           children: [clear, icon],
         ),
-        (null, final clear?) when !states.contains(WidgetState.disabled) => clear,
+        (null, final clear?) when widget.enabled => clear,
         (final icon, _) => icon,
       },
       // See https://stackoverflow.com/questions/70771410/flutter-how-can-i-remove-the-content-padding-for-error-in-textformfield
@@ -427,10 +429,14 @@ class _InputState extends State<Input> {
         .rtl => padding.copyWith(right: 0),
       },
       hintText: widget.hint,
-      hintStyle: WidgetStateTextStyle.resolveWith(style.hintTextStyle.resolve),
+      hintStyle: WidgetStateTextStyle.resolveWith(
+        (variants) => style.hintTextStyle.resolve(toTextFieldVariants(platform, variants)),
+      ),
       fillColor: style.fillColor,
       filled: style.filled,
-      border: WidgetStateInputBorder.resolveWith(style.border.resolve),
+      border: WidgetStateInputBorder.resolveWith(
+        (variants) => style.border.resolve(toTextFieldVariants(platform, variants)),
+      ),
       // This is done to trigger the error state. We don't pass in error directly since we build our own using FLabel.
       error: widget.error == null ? null : const SizedBox(),
     );

@@ -28,13 +28,23 @@ class FLineCalendar extends StatelessWidget {
 
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FLineCalendarStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create line-calendar
   /// ```
-  final FLineCalendarStyle Function(FLineCalendarStyle style)? style;
+  final FLineCalendarStyleDelta style;
 
   /// The alignment to which the initially scrolled date will be aligned. Defaults to [Alignment.center].
   final AlignmentDirectional initialScrollAlignment;
@@ -82,7 +92,7 @@ class FLineCalendar extends StatelessWidget {
   /// * [today] < [start] or [end] <= [today].
   FLineCalendar({
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.initialScrollAlignment = .center,
     this.physics,
     this.cacheExtent,
@@ -118,7 +128,7 @@ class FLineCalendar extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) => CalendarLayout(
       control: control,
-      style: style?.call(context.theme.lineCalendarStyle) ?? context.theme.lineCalendarStyle,
+      style: style(context.theme.lineCalendarStyle),
       physics: physics,
       cacheExtent: cacheExtent,
       keyboardDismissBehavior: keyboardDismissBehavior,
@@ -169,28 +179,20 @@ class FLineCalendarStyle with Diagnosticable, _$FLineCalendarStyleFunctions {
   final double contentSpacing;
 
   /// The decoration.
-  ///
-  /// @macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<BoxDecoration> decoration;
+  final FVariants<FTappableVariantConstraint, BoxDecoration, BoxDecorationDelta> decoration;
 
   /// The color of the today indicator.
-  ///
-  /// @macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<Color> todayIndicatorColor;
+  final FVariants<FTappableVariantConstraint, Color, Delta> todayIndicatorColor;
 
   /// The text style for the date.
-  ///
-  /// @macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<TextStyle> dateTextStyle;
+  final FVariants<FTappableVariantConstraint, TextStyle, TextStyleDelta> dateTextStyle;
 
   /// The text style for the day of the week.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<TextStyle> weekdayTextStyle;
+  final FVariants<FTappableVariantConstraint, TextStyle, TextStyleDelta> weekdayTextStyle;
 
   /// The tappable style.
   @override
@@ -216,99 +218,58 @@ class FLineCalendarStyle with Diagnosticable, _$FLineCalendarStyleFunctions {
   }) {
     final focusedBorder = Border.all(color: colors.primary, width: style.borderWidth);
     return .new(
-      decoration: FWidgetStateMap({
-        WidgetState.disabled & WidgetState.selected & WidgetState.focused: BoxDecoration(
-          color: colors.disable(colors.primary),
-          border: focusedBorder,
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.disabled & WidgetState.selected: BoxDecoration(
-          color: colors.disable(colors.primary),
-          border: .all(color: colors.border),
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.disabled & WidgetState.focused: BoxDecoration(
-          color: colors.background,
-          border: focusedBorder,
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.disabled: BoxDecoration(
+      decoration: .delta(
+        BoxDecoration(
           color: colors.background,
           border: .all(color: colors.border),
           borderRadius: style.borderRadius,
         ),
-        WidgetState.selected & (WidgetState.hovered | WidgetState.pressed) & WidgetState.focused: BoxDecoration(
-          color: colors.hover(colors.primary),
-          border: focusedBorder,
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.selected & (WidgetState.hovered | WidgetState.pressed): BoxDecoration(
-          color: colors.hover(colors.primary),
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.selected & WidgetState.focused: BoxDecoration(
-          color: colors.primary,
-          border: focusedBorder,
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.selected: BoxDecoration(color: colors.primary, borderRadius: style.borderRadius),
-        (WidgetState.hovered | WidgetState.pressed) & WidgetState.focused: BoxDecoration(
-          color: colors.secondary,
-          border: focusedBorder,
-          borderRadius: style.borderRadius,
-        ),
-        (WidgetState.hovered | WidgetState.pressed): BoxDecoration(
-          color: colors.secondary,
-          border: Border.all(color: colors.border),
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.focused: BoxDecoration(
-          color: colors.background,
-          border: focusedBorder,
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.any: BoxDecoration(
-          color: colors.background,
-          border: .all(color: colors.border),
-          borderRadius: style.borderRadius,
-        ),
-      }),
-      todayIndicatorColor: FWidgetStateMap({
-        WidgetState.disabled & WidgetState.selected: colors.disable(colors.primaryForeground),
-        WidgetState.disabled: colors.disable(colors.mutedForeground),
-        WidgetState.selected & (WidgetState.hovered | WidgetState.pressed): colors.hover(colors.primaryForeground),
-        WidgetState.selected: colors.primaryForeground,
-        (WidgetState.hovered | WidgetState.pressed): colors.hover(colors.primary),
-        WidgetState.any: colors.primary,
-      }),
-      dateTextStyle: FWidgetStateMap({
-        WidgetState.disabled & WidgetState.selected: typography.xl.copyWith(
-          color: colors.disable(colors.primaryForeground),
-          fontWeight: .w500,
-          height: 0,
-        ),
-        WidgetState.disabled: typography.xl.copyWith(
-          color: colors.disable(colors.mutedForeground),
-          fontWeight: .w500,
-          height: 0,
-        ),
-        WidgetState.selected: typography.xl.copyWith(color: colors.primaryForeground, fontWeight: .w500, height: 0),
-        WidgetState.any: typography.xl.copyWith(color: colors.primary, fontWeight: .w500, height: 0),
-      }),
-      weekdayTextStyle: FWidgetStateMap({
-        WidgetState.disabled & WidgetState.selected: typography.xs.copyWith(
-          color: colors.disable(colors.primaryForeground),
-          fontWeight: .w500,
-          height: 0,
-        ),
-        WidgetState.disabled: typography.xs.copyWith(
-          color: colors.disable(colors.mutedForeground),
-          fontWeight: .w500,
-          height: 0,
-        ),
-        WidgetState.selected: typography.xs.copyWith(color: colors.primaryForeground, fontWeight: .w500, height: 0),
-        WidgetState.any: typography.xs.copyWith(color: colors.mutedForeground, fontWeight: .w500, height: 0),
-      }),
+        variants: {
+          [.disabled.and(.selected).and(.focused)]: .delta(
+            color: colors.disable(colors.primary),
+            border: focusedBorder,
+          ),
+          [.disabled.and(.selected)]: .delta(color: colors.disable(colors.primary)),
+          [.disabled.and(.focused)]: .delta(color: colors.disable(colors.background), border: focusedBorder),
+          [.disabled]: .delta(color: colors.disable(colors.background)),
+          [.selected.and(.hovered).and(.focused), .selected.and(.pressed).and(.focused)]: .delta(
+            color: colors.hover(colors.primary),
+            border: focusedBorder,
+          ),
+          [.selected.and(.hovered), .selected.and(.pressed)]: .delta(color: colors.hover(colors.primary), border: null),
+          [.selected.and(.focused)]: .delta(color: colors.primary, border: focusedBorder),
+          [.selected]: .delta(color: colors.primary, border: null),
+          [.hovered.and(.focused), .pressed.and(.focused)]: .delta(color: colors.secondary, border: focusedBorder),
+          [.hovered, .pressed]: .delta(color: colors.secondary),
+          [.focused]: .delta(border: focusedBorder),
+        },
+      ),
+      todayIndicatorColor: FVariants(
+        colors.primary,
+        variants: {
+          [.disabled.and(.selected)]: colors.disable(colors.primaryForeground),
+          [.disabled]: colors.disable(colors.mutedForeground),
+          [.selected.and(.hovered), .selected.and(.pressed)]: colors.hover(colors.primaryForeground),
+          [.selected]: colors.primaryForeground,
+          [.hovered, .pressed]: colors.hover(colors.primary),
+        },
+      ),
+      dateTextStyle: .delta(
+        typography.xl.copyWith(color: colors.primary, fontWeight: .w500, height: 0),
+        variants: {
+          [.disabled.and(.selected)]: .delta(color: colors.disable(colors.primaryForeground)),
+          [.disabled]: .delta(color: colors.disable(colors.mutedForeground)),
+          [.selected]: .delta(color: colors.primaryForeground),
+        },
+      ),
+      weekdayTextStyle: .delta(
+        typography.xs.copyWith(color: colors.mutedForeground, fontWeight: .w500, height: 0),
+        variants: {
+          [.disabled.and(.selected)]: .delta(color: colors.disable(colors.primaryForeground)),
+          [.disabled]: .delta(color: colors.disable(colors.mutedForeground)),
+          [.selected]: .delta(color: colors.primaryForeground),
+        },
+      ),
       tappableStyle: style.tappableStyle,
     );
   }

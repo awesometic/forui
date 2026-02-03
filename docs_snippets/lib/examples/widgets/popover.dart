@@ -58,7 +58,7 @@ class PopoverPage extends Example {
       ),
     ),
     builder: (_, controller, _) => FButton(
-      style: FButtonStyle.outline(),
+      variants: {.outline},
       mainAxisSize: .min,
       onPress: controller.toggle,
       child: const Text('Open popover'),
@@ -119,7 +119,7 @@ class HorizontalPopoverPage extends Example {
       ),
     ),
     builder: (_, controller, _) => FButton(
-      style: FButtonStyle.outline(),
+      variants: {.outline},
       mainAxisSize: .min,
       onPress: controller.toggle,
       child: const Text('Open popover'),
@@ -181,7 +181,7 @@ class NoHideRegionPopoverPage extends Example {
       ),
     ),
     builder: (_, controller, _) => FButton(
-      style: FButtonStyle.outline(),
+      variants: {.outline},
       mainAxisSize: .min,
       onPress: controller.toggle,
       child: const Text('Open popover'),
@@ -241,7 +241,7 @@ class NestedPopoverPage extends Example {
       ),
     ),
     builder: (_, controller, _) => FButton(
-      style: FButtonStyle.outline(),
+      variants: {.outline},
       mainAxisSize: .min,
       onPress: controller.toggle,
       child: const Text('Open popover'),
@@ -274,17 +274,17 @@ class BlurredPopoverPage extends Example {
         ],
       ),
       FPopover(
-        style: context.theme.popoverStyle.copyWith(
-          // {@highlight}
-          barrierFilter: (animation) => ImageFilter.compose(
+        // {@highlight}
+        style: .delta(
+          barrierFilter: (animation) => .compose(
             outer: ImageFilter.blur(sigmaX: animation * 5, sigmaY: animation * 5),
             inner: ColorFilter.mode(
               Color.lerp(Colors.transparent, Colors.black.withValues(alpha: 0.2), animation)!,
               .srcOver,
             ),
           ),
-          // {@endhighlight}
         ),
+        // {@endhighlight}
         popoverAnchor: .topCenter,
         childAnchor: .bottomCenter,
         popoverBuilder: (context, _) => Padding(
@@ -330,7 +330,7 @@ class BlurredPopoverPage extends Example {
           ),
         ),
         builder: (_, controller, _) => FButton(
-          style: FButtonStyle.outline(),
+          variants: {.outline},
           mainAxisSize: .min,
           onPress: controller.toggle,
           child: const Text('Open popover'),
@@ -391,7 +391,7 @@ class FlipPopoverPage extends Example {
       ),
     ),
     builder: (_, controller, _) => FButton(
-      style: FButtonStyle.outline(),
+      variants: {.outline},
       mainAxisSize: .min,
       onPress: controller.toggle,
       child: const Text('Open popover'),
@@ -453,7 +453,7 @@ class SlidePopoverPage extends Example {
       ),
     ),
     builder: (_, controller, _) => FButton(
-      style: FButtonStyle.outline(),
+      variants: {.outline},
       mainAxisSize: .min,
       onPress: controller.toggle,
       child: const Text('Open popover'),
@@ -515,7 +515,7 @@ class AllowOverflowPopoverPage extends Example {
       ),
     ),
     builder: (_, controller, _) => FButton(
-      style: FButtonStyle.outline(),
+      variants: {.outline},
       mainAxisSize: .min,
       onPress: controller.toggle,
       child: const Text('Open popover'),

@@ -23,13 +23,23 @@ part 'breadcrumb.design.dart';
 class FBreadcrumb extends StatelessWidget {
   /// The breadcrumb's style. Defaults to the appropriate style in [FThemeData.breadcrumbStyle].
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FBreadcrumbStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create breadcrumb
   /// ```
-  final FBreadcrumbStyle Function(FBreadcrumbStyle style)? style;
+  final FBreadcrumbStyleDelta style;
 
   /// A list of breadcrumb items representing the navigation path.
   ///
@@ -43,11 +53,11 @@ class FBreadcrumb extends StatelessWidget {
   final Widget? divider;
 
   /// Creates an [FBreadcrumb].
-  const FBreadcrumb({required this.children, this.style, this.divider, super.key});
+  const FBreadcrumb({required this.children, this.style = const .inherit(), this.divider, super.key});
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style?.call(context.theme.breadcrumbStyle) ?? context.theme.breadcrumbStyle;
+    final style = this.style(context.theme.breadcrumbStyle);
     final divider = IconTheme(data: style.iconStyle, child: this.divider ?? const Icon(FIcons.chevronRight));
 
     return Row(
@@ -102,7 +112,7 @@ abstract interface class FBreadcrumbItem extends Widget {
     FocusNode? focusNode,
     ValueChanged<bool>? onFocusChange,
     ValueChanged<bool>? onHoverChange,
-    ValueChanged<Set<WidgetState>>? onStateChange,
+    FTappableVariantChangeCallback? onVariantChange,
     VoidCallback? onPress,
     Key? key,
   }) = _Crumb;
@@ -115,7 +125,7 @@ abstract interface class FBreadcrumbItem extends Widget {
   /// displays a popover menu with the collapsed items.
   const factory FBreadcrumbItem.collapsed({
     required List<FItemGroup> menu,
-    FPopoverMenuStyle Function(FPopoverMenuStyle style)? popoverMenuStyle,
+    FPopoverMenuStyleDelta popoverMenuStyle,
     FPopoverControl popoverControl,
     ScrollController? scrollController,
     double? cacheExtent,
@@ -133,7 +143,7 @@ abstract interface class FBreadcrumbItem extends Widget {
     FocusScopeNode? focusNode,
     ValueChanged<bool>? onFocusChange,
     ValueChanged<bool>? onHoverChange,
-    ValueChanged<Set<WidgetState>>? onStateChange,
+    FTappableVariantChangeCallback? onVariantChange,
     TraversalEdgeBehavior traversalEdgeBehavior,
     String? semanticsLabel,
     Key? key,
@@ -147,7 +157,7 @@ abstract interface class FBreadcrumbItem extends Widget {
   /// displays a popover menu with the collapsed items.
   const factory FBreadcrumbItem.collapsedTiles({
     required List<FTileGroup> menu,
-    FPopoverMenuStyle Function(FPopoverMenuStyle style)? popoverMenuStyle,
+    FPopoverMenuStyleDelta popoverMenuStyle,
     FPopoverControl popoverControl,
     ScrollController? scrollController,
     double? cacheExtent,
@@ -164,7 +174,7 @@ abstract interface class FBreadcrumbItem extends Widget {
     FocusScopeNode? focusNode,
     ValueChanged<bool>? onFocusChange,
     ValueChanged<bool>? onHoverChange,
-    ValueChanged<Set<WidgetState>>? onStateChange,
+    FTappableVariantChangeCallback? onVariantChange,
     TraversalEdgeBehavior traversalEdgeBehavior,
     String? semanticsLabel,
     Key? key,
@@ -178,7 +188,7 @@ class _Crumb extends StatelessWidget implements FBreadcrumbItem {
   final FocusNode? focusNode;
   final ValueChanged<bool>? onFocusChange;
   final ValueChanged<bool>? onHoverChange;
-  final ValueChanged<Set<WidgetState>>? onStateChange;
+  final FTappableVariantChangeCallback? onVariantChange;
   final VoidCallback? onPress;
   final Widget child;
 
@@ -190,7 +200,7 @@ class _Crumb extends StatelessWidget implements FBreadcrumbItem {
     this.focusNode,
     this.onFocusChange,
     this.onHoverChange,
-    this.onStateChange,
+    this.onVariantChange,
     super.key,
   });
 
@@ -204,7 +214,7 @@ class _Crumb extends StatelessWidget implements FBreadcrumbItem {
       focusedOutlineStyle: focusedOutlineStyle,
       selected: current,
       onPress: onPress,
-      builder: (_, states, child) => DefaultTextStyle(style: style.textStyle.resolve(states), child: child!),
+      builder: (_, variants, child) => DefaultTextStyle(style: style.textStyle.resolve(variants), child: child!),
       child: Padding(padding: style.padding, child: child),
     );
   }
@@ -218,7 +228,7 @@ class _Crumb extends StatelessWidget implements FBreadcrumbItem {
       ..add(DiagnosticsProperty('focusNode', focusNode))
       ..add(ObjectFlagProperty.has('onFocusChange', onFocusChange))
       ..add(ObjectFlagProperty.has('onHoverChange', onHoverChange))
-      ..add(ObjectFlagProperty.has('onStateChange', onStateChange))
+      ..add(ObjectFlagProperty.has('onVariantChange', onVariantChange))
       ..add(ObjectFlagProperty.has('onPress', onPress));
   }
 }
@@ -227,7 +237,7 @@ class _Crumb extends StatelessWidget implements FBreadcrumbItem {
 class _CollapsedCrumb extends StatefulWidget implements FBreadcrumbItem {
   final List<FTileGroup>? tileMenu;
   final List<FItemGroup>? itemMenu;
-  final FPopoverMenuStyle Function(FPopoverMenuStyle style)? popoverMenuStyle;
+  final FPopoverMenuStyleDelta popoverMenuStyle;
   final FPopoverControl popoverControl;
   final ScrollController? scrollController;
   final double? cacheExtent;
@@ -245,13 +255,13 @@ class _CollapsedCrumb extends StatefulWidget implements FBreadcrumbItem {
   final FocusScopeNode? focusNode;
   final ValueChanged<bool>? onFocusChange;
   final ValueChanged<bool>? onHoverChange;
-  final ValueChanged<Set<WidgetState>>? onStateChange;
+  final FTappableVariantChangeCallback? onVariantChange;
   final TraversalEdgeBehavior? traversalEdgeBehavior;
   final String? semanticsLabel;
 
   const _CollapsedCrumb({
     required List<FItemGroup> menu,
-    this.popoverMenuStyle,
+    this.popoverMenuStyle = const .inherit(),
     this.popoverControl = const .managed(),
     this.scrollController,
     this.cacheExtent,
@@ -270,7 +280,7 @@ class _CollapsedCrumb extends StatefulWidget implements FBreadcrumbItem {
     this.focusNode,
     this.onFocusChange,
     this.onHoverChange,
-    this.onStateChange,
+    this.onVariantChange,
     this.traversalEdgeBehavior,
     super.key,
   }) : itemMenu = menu,
@@ -278,7 +288,7 @@ class _CollapsedCrumb extends StatefulWidget implements FBreadcrumbItem {
 
   const _CollapsedCrumb.tiles({
     required List<FTileGroup> menu,
-    this.popoverMenuStyle,
+    this.popoverMenuStyle = const .inherit(),
     this.popoverControl = const .managed(),
     this.scrollController,
     this.cacheExtent,
@@ -297,7 +307,7 @@ class _CollapsedCrumb extends StatefulWidget implements FBreadcrumbItem {
     this.focusNode,
     this.onFocusChange,
     this.onHoverChange,
-    this.onStateChange,
+    this.onVariantChange,
     this.traversalEdgeBehavior = .closedLoop,
     super.key,
   }) : itemMenu = null,
@@ -328,7 +338,7 @@ class _CollapsedCrumb extends StatefulWidget implements FBreadcrumbItem {
       ..add(DiagnosticsProperty('focusNode', focusNode))
       ..add(ObjectFlagProperty.has('onFocusChange', onFocusChange))
       ..add(ObjectFlagProperty.has('onHoverChange', onHoverChange))
-      ..add(ObjectFlagProperty.has('onStateChange', onStateChange))
+      ..add(ObjectFlagProperty.has('onVariantChange', onVariantChange))
       ..add(EnumProperty('traversalEdgeBehavior', traversalEdgeBehavior))
       ..add(StringProperty('semanticsLabel', semanticsLabel));
   }
@@ -367,7 +377,7 @@ class _CollapsedCrumbState extends State<_CollapsedCrumb> with SingleTickerProvi
     if (widget.itemMenu case final menu?) {
       return FPopoverMenu(
         control: .managed(controller: _controller),
-        style: widget.popoverMenuStyle?.call(context.theme.popoverMenuStyle) ?? context.theme.popoverMenuStyle,
+        style: widget.popoverMenuStyle,
         menuAnchor: widget.menuAnchor,
         childAnchor: widget.childAnchor,
         spacing: widget.spacing,
@@ -398,7 +408,7 @@ class _CollapsedCrumbState extends State<_CollapsedCrumb> with SingleTickerProvi
     } else {
       return FPopoverMenu.tiles(
         control: .managed(controller: _controller),
-        style: widget.popoverMenuStyle?.call(context.theme.popoverMenuStyle) ?? context.theme.popoverMenuStyle,
+        style: widget.popoverMenuStyle,
         menuAnchor: widget.menuAnchor,
         childAnchor: widget.childAnchor,
         spacing: widget.spacing,
@@ -433,7 +443,7 @@ class _CollapsedCrumbState extends State<_CollapsedCrumb> with SingleTickerProvi
 class FBreadcrumbStyle with Diagnosticable, _$FBreadcrumbStyleFunctions {
   /// The text style.
   @override
-  final FWidgetStateMap<TextStyle> textStyle;
+  final FVariants<FTappableVariantConstraint, TextStyle, TextStyleDelta> textStyle;
 
   /// The divider icon style.
   @override
@@ -463,23 +473,17 @@ class FBreadcrumbStyle with Diagnosticable, _$FBreadcrumbStyleFunctions {
   /// Creates a [FBreadcrumbStyle] that inherits its properties.
   FBreadcrumbStyle.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
-        textStyle: FWidgetStateMap({
-          // Selected
-          WidgetState.selected & (WidgetState.hovered | WidgetState.pressed): typography.sm.copyWith(
-            fontWeight: .w400,
-            color: colors.foreground,
-            decoration: .underline,
-          ),
-          WidgetState.selected: typography.sm.copyWith(fontWeight: .w400, color: colors.foreground),
-
-          // Unselected
-          WidgetState.hovered | WidgetState.pressed: typography.sm.copyWith(
-            fontWeight: .w400,
-            color: colors.primary,
-            decoration: .underline,
-          ),
-          WidgetState.any: typography.sm.copyWith(fontWeight: .w400, color: colors.mutedForeground),
-        }),
+        textStyle: .delta(
+          typography.sm.copyWith(fontWeight: .w400, color: colors.mutedForeground),
+          variants: {
+            [.selected.and(.hovered), .selected.and(.pressed)]: .delta(
+              color: colors.foreground,
+              decoration: .underline,
+            ),
+            [.selected]: .delta(color: colors.foreground),
+            [.hovered, .pressed]: .delta(color: colors.foreground, decoration: .underline),
+          },
+        ),
         iconStyle: IconThemeData(color: colors.mutedForeground, size: 16),
         tappableStyle: style.tappableStyle.copyWith(motion: FTappableMotion.none),
         focusedOutlineStyle: style.focusedOutlineStyle,

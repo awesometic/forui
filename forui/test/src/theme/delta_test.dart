@@ -17,7 +17,7 @@ void main() {
           backgroundBlendMode: .srcOver,
         );
 
-        const delta = BoxDecorationDelta.merge();
+        const delta = BoxDecorationDelta.delta();
         final result = delta(original);
 
         expect(result.color, original.color);
@@ -39,7 +39,7 @@ void main() {
           backgroundBlendMode: .srcOver,
         );
 
-        final delta = BoxDecorationDelta.merge(
+        final delta = BoxDecorationDelta.delta(
           color: null,
           image: null,
           border: null,
@@ -64,11 +64,24 @@ void main() {
 
       const replacement = BoxDecoration(color: Color(0xFFFF0000));
 
-      const delta = BoxDecorationDelta.replace(replacement);
+      const delta = BoxDecorationDelta.value(replacement);
       final result = delta(original);
 
       expect(result, replacement);
       expect(result.borderRadius, null);
+    });
+
+    test('creates from null', () {
+      const delta = BoxDecorationDelta.delta(color: Color(0xFF000000));
+      final result = delta(null);
+
+      expect(result.color, const Color(0xFF000000));
+      expect(result.border, null);
+      expect(result.borderRadius, null);
+      expect(result.boxShadow, null);
+      expect(result.gradient, null);
+      expect(result.backgroundBlendMode, null);
+      expect(result.shape, BoxShape.rectangle);
     });
   });
 
@@ -86,7 +99,7 @@ void main() {
           shadows: [Shadow(blurRadius: 2)],
           applyTextScaling: true,
         );
-        const delta = IconThemeDataDelta.merge();
+        const delta = IconThemeDataDelta.delta();
         final result = delta(original);
 
         expect(result.color, original.color);
@@ -110,7 +123,7 @@ void main() {
           grade: 0.25,
           opticalSize: 48,
         );
-        const delta = IconThemeDataDelta.merge(
+        const delta = IconThemeDataDelta.delta(
           color: null,
           opacity: null,
           size: null,
@@ -135,11 +148,26 @@ void main() {
       const original = IconThemeData(color: Color(0xFF000000), size: 24);
       const replacement = IconThemeData(color: Color(0xFFFF0000));
 
-      const delta = IconThemeDataDelta.replace(replacement);
+      const delta = IconThemeDataDelta.value(replacement);
       final result = delta(original);
 
       expect(result, replacement);
       expect(result.size, null);
+    });
+
+    test('creates from null', () {
+      const delta = IconThemeDataDelta.delta(color: Color(0xFF000000));
+      final result = delta(null);
+
+      expect(result.color, const Color(0xFF000000));
+      expect(result.opacity, null);
+      expect(result.size, null);
+      expect(result.fill, null);
+      expect(result.weight, null);
+      expect(result.grade, null);
+      expect(result.opticalSize, null);
+      expect(result.shadows, null);
+      expect(result.applyTextScaling, null);
     });
   });
 
@@ -167,7 +195,7 @@ void main() {
           overflow: .ellipsis,
         );
 
-        const delta = TextStyleDelta.merge();
+        const delta = TextStyleDelta.delta();
         final result = delta(original);
 
         expect(result.inherit, original.inherit);
@@ -218,7 +246,7 @@ void main() {
           overflow: .ellipsis,
         );
 
-        final delta = TextStyleDelta.merge(
+        final delta = TextStyleDelta.delta(
           fontSize: null,
           fontWeight: null,
           fontStyle: () => null,
@@ -267,11 +295,25 @@ void main() {
 
       const replacement = TextStyle(color: Color(0xFFFF0000));
 
-      const delta = TextStyleDelta.replace(replacement);
+      const delta = TextStyleDelta.value(replacement);
       final result = delta(original);
 
       expect(result, replacement);
       expect(result.fontSize, null);
+      expect(result.decoration, null);
+    });
+
+    test('creates from null', () {
+      const delta = TextStyleDelta.delta(color: Color(0xFF000000));
+      final result = delta(null);
+
+      expect(result.color, const Color(0xFF000000));
+      expect(result.inherit, true);
+      expect(result.backgroundColor, null);
+      expect(result.fontSize, null);
+      expect(result.fontWeight, null);
+      expect(result.fontStyle, null);
+      expect(result.letterSpacing, null);
       expect(result.decoration, null);
     });
   });

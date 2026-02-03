@@ -4,11 +4,11 @@ import 'package:flutter/widgets.dart';
 
 import 'package:forui/forui.dart';
 
-final breadcrumb = FBreadcrumb(
+const breadcrumb = FBreadcrumb(
   // {@category "Core"}
-  style: (style) => style,
-  divider: const Icon(FIcons.chevronRight),
-  children: const [
+  style: .delta(padding: .zero),
+  divider: Icon(FIcons.chevronRight),
+  children: [
     FBreadcrumbItem(child: Text('Home'), onPress: null),
     FBreadcrumbItem(child: Text('Products'), onPress: null),
   ],
@@ -28,7 +28,7 @@ final breadcrumbItem = FBreadcrumbItem(
   // {@endcategory}
   // {@category "Callbacks"}
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 
@@ -43,7 +43,7 @@ final breadcrumbItemCollapsed = FBreadcrumbItem.collapsed(
       ],
     ),
   ],
-  popoverMenuStyle: (style) => style,
+  popoverMenuStyle: const .delta(maxWidth: 200),
   // {@endcategory}
   // {@category "Popover Control"}
   popoverControl: const .managed(),
@@ -72,7 +72,7 @@ final breadcrumbItemCollapsed = FBreadcrumbItem.collapsed(
   // {@endcategory}
   // {@category "Callbacks"}
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 
@@ -87,7 +87,7 @@ final breadcrumbItemCollapsedTiles = FBreadcrumbItem.collapsedTiles(
       ],
     ),
   ],
-  popoverMenuStyle: (style) => style,
+  popoverMenuStyle: const .delta(maxWidth: 200),
   // {@endcategory}
   // {@category "Popover Control"}
   popoverControl: const .managed(),
@@ -115,7 +115,7 @@ final breadcrumbItemCollapsedTiles = FBreadcrumbItem.collapsedTiles(
   // {@endcategory}
   // {@category "Callbacks"}
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 

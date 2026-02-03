@@ -381,7 +381,7 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
   @override
   final FRadioStyle radioStyle;
 
-  /// The resizable style.
+  /// The resizable styles.
   ///
   /// ## CLI
   /// To generate and customize this style:
@@ -390,7 +390,7 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
   /// dart run forui style create resizable
   /// ```
   @override
-  final FResizableStyle resizableStyle;
+  final FResizableStyles resizableStyles;
 
   /// The scaffold style.
   ///
@@ -608,7 +608,7 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
     FPopoverMenuStyle? popoverMenuStyle,
     FProgressStyle? progressStyle,
     FRadioStyle? radioStyle,
-    FResizableStyle? resizableStyle,
+    FResizableStyles? resizableStyles,
     FScaffoldStyle? scaffoldStyle,
     FSelectStyle? selectStyle,
     FSelectGroupStyle? selectGroupStyle,
@@ -667,7 +667,7 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
       popoverMenuStyle: popoverMenuStyle ?? .inherit(colors: colors, style: style, typography: typography),
       progressStyle: progressStyle ?? .inherit(colors: colors, style: style),
       radioStyle: radioStyle ?? .inherit(colors: colors, style: style),
-      resizableStyle: resizableStyle ?? .inherit(colors: colors, style: style),
+      resizableStyles: resizableStyles ?? .inherit(colors: colors, style: style),
       scaffoldStyle: scaffoldStyle ?? .inherit(colors: colors, style: style),
       selectStyle: selectStyle ?? .inherit(colors: colors, typography: typography, style: style),
       selectGroupStyle: selectGroupStyle ?? .inherit(colors: colors, typography: typography, style: style),
@@ -697,12 +697,30 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
     style: a.style.lerp(b.style, t),
     accordionStyle: a.accordionStyle.lerp(b.accordionStyle, t),
     autocompleteStyle: a.autocompleteStyle.lerp(b.autocompleteStyle, t),
-    alertStyles: a.alertStyles.lerp(b.alertStyles, t),
+    alertStyles: FVariants.lerpWhereUsing(
+      a.alertStyles,
+      b.alertStyles,
+      t,
+      (a, b, t) => a!.lerp(b!, t),
+      FAlertStyles.raw,
+    ),
     avatarStyle: a.avatarStyle.lerp(b.avatarStyle, t),
-    badgeStyles: a.badgeStyles.lerp(b.badgeStyles, t),
+    badgeStyles: FVariants.lerpWhereUsing(
+      a.badgeStyles,
+      b.badgeStyles,
+      t,
+      (a, b, t) => a!.lerp(b!, t),
+      FBadgeStyles.raw,
+    ),
     bottomNavigationBarStyle: a.bottomNavigationBarStyle.lerp(b.bottomNavigationBarStyle, t),
     breadcrumbStyle: a.breadcrumbStyle.lerp(b.breadcrumbStyle, t),
-    buttonStyles: a.buttonStyles.lerp(b.buttonStyles, t),
+    buttonStyles: FVariants.lerpWhereUsing(
+      a.buttonStyles,
+      b.buttonStyles,
+      t,
+      (a, b, t) => a!.lerp(b!, t),
+      FButtonStyles.raw,
+    ),
     calendarStyle: a.calendarStyle.lerp(b.calendarStyle, t),
     cardStyle: a.cardStyle.lerp(b.cardStyle, t),
     checkboxStyle: a.checkboxStyle.lerp(b.checkboxStyle, t),
@@ -711,8 +729,20 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
     determinateProgressStyle: a.determinateProgressStyle.lerp(b.determinateProgressStyle, t),
     dialogRouteStyle: a.dialogRouteStyle.lerp(b.dialogRouteStyle, t),
     dialogStyle: a.dialogStyle.lerp(b.dialogStyle, t),
-    dividerStyles: a.dividerStyles.lerp(b.dividerStyles, t),
-    headerStyles: a.headerStyles.lerp(b.headerStyles, t),
+    dividerStyles: FVariants.lerpWhereUsing(
+      a.dividerStyles,
+      b.dividerStyles,
+      t,
+      (a, b, t) => a!.lerp(b!, t),
+      FDividerStyles.raw,
+    ),
+    headerStyles: FVariants.lerpWhereUsing(
+      a.headerStyles,
+      b.headerStyles,
+      t,
+      (a, b, t) => a!.lerp(b!, t),
+      FHeaderStyles.raw,
+    ),
     itemStyle: a.itemStyle.lerp(b.itemStyle, t),
     itemGroupStyle: a.itemGroupStyle.lerp(b.itemGroupStyle, t),
     labelStyles: a.labelStyles.lerp(b.labelStyles, t),
@@ -726,13 +756,25 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
     popoverMenuStyle: a.popoverMenuStyle.lerp(b.popoverMenuStyle, t),
     progressStyle: a.progressStyle.lerp(b.progressStyle, t),
     radioStyle: a.radioStyle.lerp(b.radioStyle, t),
-    resizableStyle: a.resizableStyle.lerp(b.resizableStyle, t),
+    resizableStyles: FVariants.lerpWhereUsing(
+      a.resizableStyles,
+      b.resizableStyles,
+      t,
+      (a, b, t) => a!.lerp(b!, t),
+      FResizableStyles.raw,
+    ),
     scaffoldStyle: a.scaffoldStyle.lerp(b.scaffoldStyle, t),
     selectStyle: a.selectStyle.lerp(b.selectStyle, t),
     selectGroupStyle: a.selectGroupStyle.lerp(b.selectGroupStyle, t),
     selectMenuTileStyle: a.selectMenuTileStyle.lerp(b.selectMenuTileStyle, t),
     sidebarStyle: a.sidebarStyle.lerp(b.sidebarStyle, t),
-    sliderStyles: a.sliderStyles.lerp(b.sliderStyles, t),
+    sliderStyles: FVariants.lerpWhereUsing(
+      a.sliderStyles,
+      b.sliderStyles,
+      t,
+      (a, b, t) => a!.lerp(b!, t),
+      FSliderStyles.raw,
+    ),
     toasterStyle: a.toasterStyle.lerp(b.toasterStyle, t),
     switchStyle: a.switchStyle.lerp(b.switchStyle, t),
     tabsStyle: a.tabsStyle.lerp(b.tabsStyle, t),
@@ -786,7 +828,7 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
     required this.popoverMenuStyle,
     required this.progressStyle,
     required this.radioStyle,
-    required this.resizableStyle,
+    required this.resizableStyles,
     required this.scaffoldStyle,
     required this.selectStyle,
     required this.selectGroupStyle,
@@ -862,6 +904,12 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
 
   /// Converts this [FThemeData] to a Material [ThemeData] on a best-effort basis.
   ///
+  /// It does not take into account any platform-specific styling. If you need to do so, consider generating and
+  /// customizing this method using the CLI:
+  /// ```shell
+  /// dart run forui snippet create material-mapping
+  /// ```
+  ///
   /// This method enables interoperability between Forui and Material Design widgets by mapping
   /// Forui's theme properties to their closest Material equivalents. Use this when you need to:
   ///
@@ -879,11 +927,6 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
   ///   theme: FThemes.zinc.light.toApproximateMaterialTheme(),
   ///   // ...
   /// )
-  /// ```
-  ///
-  /// This method can be generated inside projects and directly modified by running:
-  /// ```shell
-  /// dart run forui snippet create material-mapping
   /// ```
   @experimental
   ThemeData toApproximateMaterialTheme() {
@@ -962,13 +1005,13 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
 
       // Input
       inputDecorationTheme: InputDecorationTheme(
-        border: WidgetStateInputBorder.resolveWith(textFieldStyle.border.resolve),
-        labelStyle: textFieldStyle.descriptionTextStyle.maybeResolve({}),
-        floatingLabelStyle: textFieldStyle.labelTextStyle.maybeResolve({}),
-        hintStyle: textFieldStyle.hintTextStyle.maybeResolve({}),
-        errorStyle: textFieldStyle.errorTextStyle,
-        helperStyle: textFieldStyle.descriptionTextStyle.maybeResolve({}),
-        counterStyle: textFieldStyle.counterTextStyle.maybeResolve({}),
+        border: WidgetStateInputBorder.resolveWith((states) => textFieldStyle.border.resolve(toVariants(states))),
+        labelStyle: textFieldStyle.descriptionTextStyle.base,
+        floatingLabelStyle: textFieldStyle.labelTextStyle.base,
+        hintStyle: textFieldStyle.hintTextStyle.base,
+        errorStyle: textFieldStyle.errorTextStyle.base,
+        helperStyle: textFieldStyle.descriptionTextStyle.base,
+        counterStyle: textFieldStyle.counterTextStyle.base,
         contentPadding: textFieldStyle.contentPadding,
       ),
 
@@ -992,73 +1035,101 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
         shape: RoundedRectangleBorder(borderRadius: style.borderRadius),
       ),
 
-      /// Slider
+      // Slider
       sliderTheme: SliderThemeData(
-        activeTrackColor: sliderStyles.horizontalStyle.activeColor.maybeResolve({}),
-        inactiveTrackColor: sliderStyles.horizontalStyle.inactiveColor.maybeResolve({}),
-        disabledActiveTrackColor: sliderStyles.horizontalStyle.activeColor.maybeResolve({WidgetState.disabled}),
-        disabledInactiveTrackColor: sliderStyles.horizontalStyle.inactiveColor.maybeResolve({WidgetState.disabled}),
-        activeTickMarkColor: sliderStyles.horizontalStyle.markStyle.tickColor.maybeResolve({}),
-        inactiveTickMarkColor: sliderStyles.horizontalStyle.markStyle.tickColor.maybeResolve({}),
-        disabledActiveTickMarkColor: sliderStyles.horizontalStyle.markStyle.tickColor.maybeResolve({
-          WidgetState.disabled,
-        }),
-        disabledInactiveTickMarkColor: sliderStyles.horizontalStyle.markStyle.tickColor.maybeResolve({
-          WidgetState.disabled,
-        }),
-        thumbColor: sliderStyles.horizontalStyle.thumbStyle.borderColor.maybeResolve({}),
-        disabledThumbColor: sliderStyles.horizontalStyle.thumbStyle.borderColor.maybeResolve({WidgetState.disabled}),
-        valueIndicatorColor: sliderStyles.horizontalStyle.tooltipStyle.decoration.color,
-        valueIndicatorTextStyle: sliderStyles.horizontalStyle.tooltipStyle.textStyle,
+        activeTrackColor: sliderStyles.base.activeColor.base,
+        inactiveTrackColor: sliderStyles.base.inactiveColor.base,
+        disabledActiveTrackColor: sliderStyles.base.activeColor.resolve({FSliderVariant.disabled}),
+        disabledInactiveTrackColor: sliderStyles.base.inactiveColor.resolve({FSliderVariant.disabled}),
+        activeTickMarkColor: sliderStyles.base.markStyle.tickColor.base,
+        inactiveTickMarkColor: sliderStyles.base.markStyle.tickColor.base,
+        disabledActiveTickMarkColor: sliderStyles.base.markStyle.tickColor.resolve({FSliderVariant.disabled}),
+        disabledInactiveTickMarkColor: sliderStyles.base.markStyle.tickColor.resolve({FSliderVariant.disabled}),
+        thumbColor: sliderStyles.base.thumbStyle.borderColor.base,
+        disabledThumbColor: sliderStyles.base.thumbStyle.borderColor.resolve({FSliderVariant.disabled}),
+        valueIndicatorColor: sliderStyles.base.tooltipStyle.decoration.color,
+        valueIndicatorTextStyle: sliderStyles.base.tooltipStyle.textStyle,
       ),
 
       // Switch
       switchTheme: SwitchThemeData(
-        thumbColor: switchStyle.thumbColor,
-        trackColor: switchStyle.trackColor,
-        trackOutlineColor: switchStyle.trackColor,
+        thumbColor: .resolveWith((states) => switchStyle.thumbColor.resolve(toVariants(states))),
+        trackColor: .resolveWith((states) => switchStyle.trackColor.resolve(toVariants(states))),
+        trackOutlineColor: .resolveWith((states) => switchStyle.trackColor.resolve(toVariants(states))),
       ),
 
       // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
-          textStyle: buttonStyles.secondary.contentStyle.textStyle,
-          backgroundColor: WidgetStateColor.resolveWith(
-            (states) => buttonStyles.secondary.decoration.maybeResolve(states)?.color ?? colors.secondary,
-          ),
-          foregroundColor: WidgetStateColor.resolveWith(
+          textStyle: .resolveWith(
             (states) =>
-                buttonStyles.secondary.contentStyle.textStyle.maybeResolve(states)?.color ?? colors.secondaryForeground,
+                buttonStyles.resolve({FButtonVariant.secondary}).contentStyle.textStyle.resolve(toVariants(states)),
           ),
-          padding: .all(buttonStyles.secondary.contentStyle.padding),
+          backgroundColor: .resolveWith(
+            (states) =>
+                buttonStyles.resolve({FButtonVariant.secondary}).decoration.resolve(toVariants(states)).color ??
+                colors.secondary,
+          ),
+          foregroundColor: .resolveWith(
+            (states) =>
+                buttonStyles
+                    .resolve({FButtonVariant.secondary})
+                    .contentStyle
+                    .textStyle
+                    .resolve(toVariants(states))
+                    .color ??
+                colors.secondaryForeground,
+          ),
+          padding: .all(buttonStyles.resolve({FButtonVariant.secondary}).contentStyle.padding),
           shape: .all(RoundedRectangleBorder(borderRadius: style.borderRadius)),
         ),
       ),
+
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
-          textStyle: buttonStyles.primary.contentStyle.textStyle,
-          backgroundColor: WidgetStateColor.resolveWith(
-            (states) => buttonStyles.primary.decoration.maybeResolve(states)?.color ?? colors.secondary,
+          textStyle: .resolveWith((states) => buttonStyles.base.contentStyle.textStyle.resolve(toVariants(states))),
+          backgroundColor: .resolveWith(
+            (states) => buttonStyles.base.decoration.resolve(toVariants(states)).color ?? colors.secondary,
           ),
-          foregroundColor: WidgetStateColor.resolveWith(
-            (states) => buttonStyles.secondary.decoration.maybeResolve(states)?.color ?? colors.secondaryForeground,
+          foregroundColor: .resolveWith(
+            (states) =>
+                buttonStyles
+                    .resolve({FButtonVariant.secondary})
+                    .contentStyle
+                    .textStyle
+                    .resolve(toVariants(states))
+                    .color ??
+                colors.secondaryForeground,
           ),
-          padding: .all(buttonStyles.primary.contentStyle.padding),
+          padding: .all(buttonStyles.base.contentStyle.padding),
           shape: .all(RoundedRectangleBorder(borderRadius: style.borderRadius)),
         ),
       ),
+
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: ButtonStyle(
-          textStyle: buttonStyles.outline.contentStyle.textStyle,
-          backgroundColor: WidgetStateColor.resolveWith(
-            (states) => buttonStyles.outline.decoration.maybeResolve(states)?.color ?? Colors.transparent,
+          textStyle: .resolveWith(
+            (states) =>
+                buttonStyles.resolve({FButtonVariant.outline}).contentStyle.textStyle.resolve(toVariants(states)),
           ),
-          foregroundColor: WidgetStateColor.resolveWith(
-            (states) => buttonStyles.outline.decoration.maybeResolve(states)?.color ?? Colors.transparent,
+          backgroundColor: .resolveWith(
+            (states) =>
+                buttonStyles.resolve({FButtonVariant.outline}).decoration.resolve(toVariants(states)).color ??
+                Colors.transparent,
           ),
-          padding: .all(buttonStyles.outline.contentStyle.padding),
-          side: WidgetStateBorderSide.resolveWith((states) {
-            final border = buttonStyles.outline.decoration.maybeResolve(states)?.border;
+          foregroundColor: .resolveWith(
+            (states) =>
+                buttonStyles
+                    .resolve({FButtonVariant.outline})
+                    .contentStyle
+                    .textStyle
+                    .resolve(toVariants(states))
+                    .color ??
+                Colors.transparent,
+          ),
+          padding: .all(buttonStyles.resolve({FButtonVariant.outline}).contentStyle.padding),
+          side: .resolveWith((states) {
+            final border = buttonStyles.resolve({FButtonVariant.outline}).decoration.resolve(toVariants(states)).border;
             return BorderSide(
               color:
                   border?.top.color ??
@@ -1070,68 +1141,93 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
               width: border?.top.width ?? style.borderWidth,
             );
           }),
-          shape: WidgetStateProperty.resolveWith(
+          shape: .resolveWith(
             (states) => RoundedRectangleBorder(
-              borderRadius: buttonStyles.outline.decoration.maybeResolve(states)?.borderRadius ?? style.borderRadius,
+              borderRadius:
+                  buttonStyles.resolve({FButtonVariant.outline}).decoration.resolve(toVariants(states)).borderRadius ??
+                  style.borderRadius,
             ),
           ),
         ),
       ),
+
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
-          textStyle: buttonStyles.ghost.contentStyle.textStyle,
-          backgroundColor: WidgetStateColor.resolveWith(
-            (states) => buttonStyles.ghost.decoration.maybeResolve(states)?.color ?? Colors.transparent,
+          textStyle: .resolveWith(
+            (states) => buttonStyles.resolve({FButtonVariant.ghost}).contentStyle.textStyle.resolve(toVariants(states)),
           ),
-          foregroundColor: WidgetStateColor.resolveWith(
+          backgroundColor: .resolveWith(
             (states) =>
-                buttonStyles.ghost.contentStyle.textStyle.maybeResolve(states)?.color ?? colors.secondaryForeground,
+                buttonStyles.resolve({FButtonVariant.ghost}).decoration.resolve(toVariants(states)).color ??
+                Colors.transparent,
           ),
-          shape: WidgetStateProperty.resolveWith(
+          foregroundColor: .resolveWith(
+            (states) =>
+                buttonStyles.resolve({FButtonVariant.ghost}).contentStyle.textStyle.resolve(toVariants(states)).color ??
+                colors.secondaryForeground,
+          ),
+          shape: .resolveWith(
             (states) => RoundedRectangleBorder(
-              borderRadius: buttonStyles.ghost.decoration.maybeResolve(states)?.borderRadius ?? style.borderRadius,
+              borderRadius:
+                  buttonStyles.resolve({FButtonVariant.ghost}).decoration.resolve(toVariants(states)).borderRadius ??
+                  style.borderRadius,
             ),
           ),
         ),
       ),
+
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: buttonStyles.primary.decoration.maybeResolve(const {})?.color,
-        foregroundColor: buttonStyles.primary.contentStyle.textStyle.maybeResolve(const {})?.color,
-        hoverColor: buttonStyles.primary.decoration.maybeResolve(const {WidgetState.hovered})?.color,
+        backgroundColor: buttonStyles.base.decoration.base.color,
+        foregroundColor: buttonStyles.base.contentStyle.textStyle.base.color,
+        hoverColor: buttonStyles.base.decoration.resolve({FTappableVariant.hovered}).color,
         disabledElevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: buttonStyles.primary.decoration.maybeResolve(const {})?.borderRadius ?? style.borderRadius,
+          borderRadius: buttonStyles.base.decoration.base.borderRadius ?? style.borderRadius,
         ),
       ),
+
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          backgroundColor: WidgetStateColor.resolveWith(
-            (states) => buttonStyles.ghost.decoration.maybeResolve(states)?.color ?? Colors.transparent,
-          ),
-          foregroundColor: WidgetStateColor.resolveWith(
+          backgroundColor: .resolveWith(
             (states) =>
-                buttonStyles.ghost.contentStyle.textStyle.maybeResolve(states)?.color ?? colors.secondaryForeground,
+                buttonStyles.resolve({FButtonVariant.ghost}).decoration.resolve(toVariants(states)).color ??
+                Colors.transparent,
           ),
-          shape: WidgetStateProperty.resolveWith(
+          foregroundColor: .resolveWith(
+            (states) =>
+                buttonStyles.resolve({FButtonVariant.ghost}).contentStyle.textStyle.resolve(toVariants(states)).color ??
+                colors.secondaryForeground,
+          ),
+          shape: .resolveWith(
             (states) => RoundedRectangleBorder(
-              borderRadius: buttonStyles.ghost.decoration.maybeResolve(states)?.borderRadius ?? style.borderRadius,
+              borderRadius:
+                  buttonStyles.resolve({FButtonVariant.ghost}).decoration.resolve(toVariants(states)).borderRadius ??
+                  style.borderRadius,
             ),
           ),
         ),
       ),
+
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
-          textStyle: buttonStyles.ghost.contentStyle.textStyle,
-          backgroundColor: WidgetStateColor.resolveWith(
-            (states) => buttonStyles.ghost.decoration.maybeResolve(states)?.color ?? Colors.transparent,
+          textStyle: .resolveWith(
+            (states) => buttonStyles.resolve({FButtonVariant.ghost}).contentStyle.textStyle.resolve(toVariants(states)),
           ),
-          foregroundColor: WidgetStateColor.resolveWith(
+          backgroundColor: .resolveWith(
             (states) =>
-                buttonStyles.ghost.contentStyle.textStyle.maybeResolve(states)?.color ?? colors.secondaryForeground,
+                buttonStyles.resolve({FButtonVariant.ghost}).decoration.resolve(toVariants(states)).color ??
+                Colors.transparent,
           ),
-          shape: WidgetStateProperty.resolveWith(
+          foregroundColor: .resolveWith(
+            (states) =>
+                buttonStyles.resolve({FButtonVariant.ghost}).contentStyle.textStyle.resolve(toVariants(states)).color ??
+                colors.secondaryForeground,
+          ),
+          shape: .resolveWith(
             (states) => RoundedRectangleBorder(
-              borderRadius: buttonStyles.ghost.decoration.maybeResolve(states)?.borderRadius ?? style.borderRadius,
+              borderRadius:
+                  buttonStyles.resolve({FButtonVariant.ghost}).decoration.resolve(toVariants(states)).borderRadius ??
+                  style.borderRadius,
             ),
           ),
         ),
@@ -1151,8 +1247,8 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
 
       /// Divider
       dividerTheme: DividerThemeData(
-        color: dividerStyles.horizontalStyle.color,
-        thickness: dividerStyles.horizontalStyle.width,
+        color: dividerStyles.resolve({}).color,
+        thickness: dividerStyles.resolve({}).width,
       ),
 
       iconTheme: IconThemeData(color: colors.primary, size: 20),
@@ -1244,7 +1340,7 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
     FPopoverMenuStyle Function(FPopoverMenuStyle style)? popoverMenuStyle,
     FProgressStyle Function(FProgressStyle style)? progressStyle,
     FRadioStyle Function(FRadioStyle style)? radioStyle,
-    FResizableStyle Function(FResizableStyle style)? resizableStyle,
+    FResizableStyles Function(FResizableStyles style)? resizableStyles,
     FScaffoldStyle Function(FScaffoldStyle style)? scaffoldStyle,
     FSelectStyle Function(FSelectStyle style)? selectStyle,
     FSelectGroupStyle Function(FSelectGroupStyle style)? selectGroupStyle,
@@ -1307,7 +1403,7 @@ final class FThemeData with Diagnosticable, _$FThemeDataFunctions {
     popoverMenuStyle: popoverMenuStyle != null ? popoverMenuStyle(this.popoverMenuStyle) : this.popoverMenuStyle,
     progressStyle: progressStyle != null ? progressStyle(this.progressStyle) : this.progressStyle,
     radioStyle: radioStyle != null ? radioStyle(this.radioStyle) : this.radioStyle,
-    resizableStyle: resizableStyle != null ? resizableStyle(this.resizableStyle) : this.resizableStyle,
+    resizableStyles: resizableStyles != null ? resizableStyles(this.resizableStyles) : this.resizableStyles,
     scaffoldStyle: scaffoldStyle != null ? scaffoldStyle(this.scaffoldStyle) : this.scaffoldStyle,
     selectStyle: selectStyle != null ? selectStyle(this.selectStyle) : this.selectStyle,
     selectGroupStyle: selectGroupStyle != null ? selectGroupStyle(this.selectGroupStyle) : this.selectGroupStyle,

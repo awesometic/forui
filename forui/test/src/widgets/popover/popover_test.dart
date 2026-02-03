@@ -80,7 +80,7 @@ void main() {
           mainAxisSize: .min,
           children: [
             FPopover(
-              style: FThemes.zinc.light.popoverStyle.copyWith(
+              style: .delta(
                 barrierFilter: (animation) => .blur(sigmaX: animation * 5, sigmaY: animation * 5),
               ),
               popoverBuilder: (context, _) => const Text('popover'),
@@ -133,7 +133,7 @@ void main() {
     await tester.pumpWidget(
       TestScaffold.app(
         child: FPopover(
-          style: FThemes.zinc.light.popoverStyle.copyWith(
+          style: .delta(
             barrierFilter: (animation) => .blur(sigmaX: animation * 5, sigmaY: animation * 5),
           ),
           onTapHide: () => count++,
@@ -160,7 +160,7 @@ void main() {
     await tester.pumpWidget(
       TestScaffold.app(
         child: FPopover(
-          style: FThemes.zinc.light.popoverStyle.copyWith(
+          style: .delta(
             barrierFilter: (animation) => .blur(sigmaX: animation * 5, sigmaY: animation * 5),
           ),
           onTapHide: () => count++,

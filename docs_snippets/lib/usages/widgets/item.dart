@@ -6,7 +6,7 @@ import 'package:forui/forui.dart';
 
 final item = FItem(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(margin: .zero),
   enabled: true,
   selected: false,
   onPress: () {},
@@ -29,13 +29,13 @@ final item = FItem(
   onSecondaryPress: () {},
   onSecondaryLongPress: () {},
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 
 final raw = FItem.raw(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(margin: .zero),
   enabled: true,
   selected: false,
   onPress: () {},
@@ -55,6 +55,6 @@ final raw = FItem.raw(
   onSecondaryPress: () {},
   onSecondaryLongPress: () {},
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );

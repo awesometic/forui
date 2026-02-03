@@ -39,7 +39,24 @@ class FSelectTileGroup<T> extends StatefulWidget with FTileGroupMixin, FFormFiel
   final ScrollPhysics physics;
 
   /// The style. Defaults to [FThemeData.tileGroupStyle].
-  final FTileGroupStyle? style;
+  ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FTileGroupStyle(...)
+  /// ```
+  ///
+  /// ## CLI
+  /// To generate and customize this style:
+  ///
+  /// ```shell
+  /// dart run forui style create tile-group
+  /// ```
+  final FTileGroupStyleDelta style;
 
   /// {@macro forui.widgets.FTileGroup.divider}
   ///
@@ -99,7 +116,7 @@ class FSelectTileGroup<T> extends StatefulWidget with FTileGroupMixin, FFormFiel
     required List<FSelectTile<T>> children,
     this.control,
     this.scrollController,
-    this.style,
+    this.style = const .inherit(),
     this.cacheExtent,
     this.maxHeight = .infinity,
     this.dragStartBehavior = .start,
@@ -130,7 +147,7 @@ class FSelectTileGroup<T> extends StatefulWidget with FTileGroupMixin, FFormFiel
     int? count,
     this.control,
     this.scrollController,
-    this.style,
+    this.style = const .inherit(),
     this.cacheExtent,
     this.maxHeight = .infinity,
     this.dragStartBehavior = .start,
@@ -208,7 +225,7 @@ class _FSelectTileGroupState<T> extends State<FSelectTileGroup<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final groupStyle = widget.style ?? context.theme.tileGroupStyle;
+    final groupStyle = widget.style(context.theme.tileGroupStyle);
 
     return MultiValueFormField<T>(
       controller: _controller,

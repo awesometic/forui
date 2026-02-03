@@ -4,19 +4,19 @@ import 'package:flutter/widgets.dart';
 
 import 'package:forui/forui.dart';
 
-final accordion = FAccordion(
+const accordion = FAccordion(
   // {@category "Core"}
-  style: (style) => style,
-  children: const [FAccordionItem(title: Text('Title'), child: SizedBox())],
+  style: .delta(titlePadding: .zero),
+  children: [FAccordionItem(title: Text('Title'), child: SizedBox())],
   // {@endcategory}
   // {@category "Control"}
-  control: const .managed(min: 1, max: 2),
+  control: .managed(min: 1, max: 2),
   // {@endcategory}
 );
 
 final accordionItem = FAccordionItem(
   // {@category "Core"}
-  style: null,
+  style: const .delta(titlePadding: .zero),
   title: const Text('Title'),
   icon: const Icon(FIcons.chevronDown),
   initiallyExpanded: false,
@@ -29,7 +29,7 @@ final accordionItem = FAccordionItem(
   // {@endcategory}
   // {@category "Callbacks"}
   onHoverChange: (hovered) {},
-  onStateChange: (delta) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 

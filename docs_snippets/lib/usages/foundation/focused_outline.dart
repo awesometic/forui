@@ -2,10 +2,10 @@ import 'package:flutter/widgets.dart';
 
 import 'package:forui/forui.dart';
 
-final focusedOutline = FFocusedOutline(
+const focusedOutline = FFocusedOutline(
   // {@category "Core"}
-  style: (style) => style,
+  style: .delta(color: Color(0xFF000000)),
   focused: true,
-  child: const Placeholder(),
+  child: Placeholder(),
   // {@endcategory}
 );

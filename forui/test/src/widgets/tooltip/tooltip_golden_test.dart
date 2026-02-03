@@ -51,12 +51,14 @@ void main() {
             children: [
               const Text('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
               FTooltip(
-                style: theme.data.tooltipStyle.copyWith(
+                style: .delta(
                   backgroundFilter: .blur(sigmaX: 5, sigmaY: 5),
-                  decoration: BoxDecoration(
-                    color: theme.data.colors.background.withValues(alpha: 0.5),
-                    borderRadius: theme.data.style.borderRadius,
-                    border: .all(width: theme.data.style.borderWidth, color: theme.data.colors.border),
+                  decoration: .value(
+                    BoxDecoration(
+                      color: theme.data.colors.background.withValues(alpha: 0.5),
+                      borderRadius: theme.data.style.borderRadius,
+                      border: .all(width: theme.data.style.borderWidth, color: theme.data.colors.border),
+                    ),
                   ),
                 ),
                 tipBuilder: (context, _) => const Text('Lorem'),

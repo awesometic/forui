@@ -6,7 +6,7 @@ import 'package:forui/forui.dart';
 
 final tile = FTile(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(margin: .zero),
   enabled: true,
   selected: false,
   onPress: () {},
@@ -29,13 +29,13 @@ final tile = FTile(
   onSecondaryPress: () {},
   onSecondaryLongPress: () {},
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 
 final tileRaw = FTile.raw(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(margin: .zero),
   enabled: true,
   selected: false,
   onPress: () {},
@@ -55,6 +55,6 @@ final tileRaw = FTile.raw(
   onSecondaryPress: () {},
   onSecondaryLongPress: () {},
   onHoverChange: (hovered) {},
-  onStateChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );

@@ -13,13 +13,23 @@ part 'bottom_navigation_bar_item.design.dart';
 class FBottomNavigationBarItem extends StatelessWidget {
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FBottomNavigationBarItemStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create bottom-navigation-bar-item
   /// ```
-  final FBottomNavigationBarItemStyle Function(FBottomNavigationBarItemStyle style)? style;
+  final FBottomNavigationBarItemStyleDelta style;
 
   /// The icon, wrapped in a [IconTheme].
   final Widget icon;
@@ -39,26 +49,26 @@ class FBottomNavigationBarItem extends StatelessWidget {
   /// {@macro forui.foundation.FTappable.onHoverChange}
   final ValueChanged<bool>? onHoverChange;
 
-  /// {@macro forui.foundation.FTappable.onStateChange}
-  final ValueChanged<FWidgetStatesDelta>? onStateChange;
+  /// {@macro forui.foundation.FTappable.onVariantChange}
+  final FTappableVariantChangeCallback? onVariantChange;
 
   /// Creates a [FBottomNavigationBarItem].
   const FBottomNavigationBarItem({
     required this.icon,
     this.label,
-    this.style,
+    this.style = const .inherit(),
     this.autofocus = false,
     this.focusNode,
     this.onFocusChange,
     this.onHoverChange,
-    this.onStateChange,
+    this.onVariantChange,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     final FBottomNavigationBarData(:itemStyle, :selected, :index, :onChange) = .of(context);
-    final style = this.style?.call(itemStyle) ?? itemStyle;
+    final style = this.style(itemStyle);
 
     return FTappable(
       style: style.tappableStyle,
@@ -67,21 +77,21 @@ class FBottomNavigationBarItem extends StatelessWidget {
       focusNode: focusNode,
       onFocusChange: onFocusChange,
       onHoverChange: onHoverChange,
-      onStateChange: onStateChange,
-      behavior: HitTestBehavior.opaque,
+      onVariantChange: onVariantChange,
+      behavior: .opaque,
       selected: selected,
       onPress: () => onChange?.call(index),
-      builder: (_, states, _) => Padding(
+      builder: (_, variants, _) => Padding(
         padding: style.padding,
         child: Column(
           mainAxisSize: .min,
           spacing: style.spacing,
           children: [
             ExcludeSemantics(
-              child: IconTheme(data: style.iconStyle.resolve(states), child: icon),
+              child: IconTheme(data: style.iconStyle.resolve(variants), child: icon),
             ),
             if (label case final label?)
-              DefaultTextStyle.merge(style: style.textStyle.resolve(states), overflow: .ellipsis, child: label),
+              DefaultTextStyle.merge(style: style.textStyle.resolve(variants), overflow: .ellipsis, child: label),
           ],
         ),
       ),
@@ -97,23 +107,19 @@ class FBottomNavigationBarItem extends StatelessWidget {
       ..add(ObjectFlagProperty.has('focusNode', focusNode))
       ..add(ObjectFlagProperty.has('onFocusChange', onFocusChange))
       ..add(ObjectFlagProperty.has('onHoverChange', onHoverChange))
-      ..add(ObjectFlagProperty.has('onStateChange', onStateChange));
+      ..add(ObjectFlagProperty.has('onVariantChange', onVariantChange));
   }
 }
 
 /// [FBottomNavigationBarItem]'s style.
 class FBottomNavigationBarItemStyle with Diagnosticable, _$FBottomNavigationBarItemStyleFunctions {
   /// The icon's style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<IconThemeData> iconStyle;
+  final FVariants<FTappableVariantConstraint, IconThemeData, IconThemeDataDelta> iconStyle;
 
   /// The text style.
-  ///
-  /// {@macro forui.foundation.doc_templates.WidgetStates.selectable}
   @override
-  final FWidgetStateMap<TextStyle> textStyle;
+  final FVariants<FTappableVariantConstraint, TextStyle, TextStyleDelta> textStyle;
 
   /// The padding. Defaults to `EdgeInsets.all(5)`.
   @override
@@ -147,14 +153,18 @@ class FBottomNavigationBarItemStyle with Diagnosticable, _$FBottomNavigationBarI
     required FTypography typography,
     required FStyle style,
   }) : this(
-         iconStyle: FWidgetStateMap({
-           WidgetState.selected: IconThemeData(color: colors.primary, size: 24),
-           WidgetState.any: IconThemeData(color: colors.disable(colors.foreground), size: 24),
-         }),
-         textStyle: FWidgetStateMap({
-           WidgetState.selected: typography.base.copyWith(color: colors.primary, fontSize: 10),
-           WidgetState.any: typography.base.copyWith(color: colors.disable(colors.foreground), fontSize: 10),
-         }),
+         iconStyle: .delta(
+           IconThemeData(color: colors.disable(colors.foreground), size: 24),
+           variants: {
+             [.selected]: .delta(color: colors.primary),
+           },
+         ),
+         textStyle: .delta(
+           typography.base.copyWith(color: colors.disable(colors.foreground), fontSize: 10),
+           variants: {
+             [.selected]: .delta(color: colors.primary),
+           },
+         ),
          tappableStyle: style.tappableStyle,
          focusedOutlineStyle: style.focusedOutlineStyle,
        );

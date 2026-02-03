@@ -9,8 +9,10 @@ import 'package:meta/meta.dart';
 import 'package:sugar/sugar.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
 import 'package:forui/src/widgets/calendar/shared/entry.dart';
 
+@Sentinels(FCalendarDayPickerStyle, {'startDayOfWeek': '-1'})
 part 'day_picker.design.dart';
 
 @internal
@@ -229,43 +231,51 @@ class FCalendarDayPickerStyle with Diagnosticable, _$FCalendarDayPickerStyleFunc
   factory FCalendarDayPickerStyle.inherit({required FColors colors, required FTypography typography}) {
     final mutedTextStyle = typography.base.copyWith(color: colors.disable(colors.mutedForeground), fontWeight: .w500);
 
-    final background = {
-      WidgetState.disabled & WidgetState.selected: colors.primaryForeground,
-      WidgetState.disabled: colors.background,
+    final background = <List<FTappableVariantConstraint>, Color>{
+      [.disabled.and(.selected)]: colors.primaryForeground,
+      [.disabled]: colors.background,
+      [.hovered, .pressed]: colors.secondary,
     };
 
-    final border = {
-      WidgetState.disabled & WidgetState.selected & WidgetState.focused: colors.primaryForeground,
-      WidgetState.disabled & WidgetState.focused: colors.background,
-      WidgetState.focused: colors.foreground,
-    };
+    final border = FVariants<FTappableVariantConstraint, Color?, Delta>(
+      null,
+      variants: {
+        [.disabled.and(.selected).and(.focused)]: colors.primaryForeground,
+        [.disabled.and(.focused)]: colors.background,
+        [.focused]: colors.foreground,
+      },
+    );
 
     return .new(
       headerTextStyle: typography.xs.copyWith(color: colors.mutedForeground),
       current: FCalendarEntryStyle(
-        backgroundColor: FWidgetStateMap({
-          ...background,
-          WidgetState.selected: colors.foreground,
-          ~WidgetState.selected & (WidgetState.hovered | WidgetState.pressed): colors.secondary,
-          WidgetState.any: colors.background,
-        }),
-        borderColor: FWidgetStateMap(border),
-        textStyle: FWidgetStateMap({
-          WidgetState.disabled: mutedTextStyle,
-          WidgetState.selected: typography.base.copyWith(color: colors.background, fontWeight: .w500),
-          WidgetState.any: typography.base.copyWith(color: colors.foreground, fontWeight: .w500),
-        }),
+        backgroundColor: FVariants(
+          colors.background,
+          variants: {
+            ...background,
+            [.selected]: colors.foreground,
+          },
+        ),
+        borderColor: border,
+        textStyle: .delta(
+          typography.base.copyWith(color: colors.foreground, fontWeight: .w500),
+          variants: {
+            [.disabled]: .delta(color: colors.disable(colors.mutedForeground)),
+            [.selected]: .delta(color: colors.background),
+          },
+        ),
         radius: const .circular(4),
       ),
       enclosing: FCalendarEntryStyle(
-        backgroundColor: FWidgetStateMap({
-          ...background,
-          WidgetState.selected: colors.primaryForeground,
-          ~WidgetState.selected & (WidgetState.hovered | WidgetState.pressed): colors.secondary,
-          WidgetState.any: colors.background,
-        }),
-        borderColor: FWidgetStateMap(border),
-        textStyle: FWidgetStateMap.all(mutedTextStyle),
+        backgroundColor: FVariants(
+          colors.background,
+          variants: {
+            ...background,
+            [.selected]: colors.primaryForeground,
+          },
+        ),
+        borderColor: border,
+        textStyle: .all(mutedTextStyle),
         radius: const .circular(4),
       ),
     );

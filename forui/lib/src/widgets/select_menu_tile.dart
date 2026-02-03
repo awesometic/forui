@@ -60,13 +60,23 @@ class FSelectMenuTile<T> extends StatefulWidget with FTileMixin, FFormFieldPrope
 
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FSelectMenuTileStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create select-menu-tile
   /// ```
-  final FSelectMenuTileStyle Function(FSelectMenuTileStyle style)? style;
+  final FSelectMenuTileStyleDelta style;
 
   /// The divider between select tiles. Defaults to [FItemDivider.indented].
   final FItemDivider divider;
@@ -203,7 +213,7 @@ class FSelectMenuTile<T> extends StatefulWidget with FTileMixin, FFormFieldPrope
     this.selectControl,
     this.popoverControl = const .managed(),
     this.scrollController,
-    this.style,
+    this.style = const .inherit(),
     this.cacheExtent,
     this.maxHeight = .infinity,
     this.dragStartBehavior = .start,
@@ -259,7 +269,7 @@ class FSelectMenuTile<T> extends StatefulWidget with FTileMixin, FFormFieldPrope
     FMultiValueControl<T>? selectControl,
     FPopoverControl popoverControl = const .managed(),
     ScrollController? scrollController,
-    FSelectMenuTileStyle Function(FSelectMenuTileStyle style)? style,
+    FSelectMenuTileStyleDelta style = const .inherit(),
     double? cacheExtent,
     double maxHeight = .infinity,
     DragStartBehavior dragStartBehavior = .start,
@@ -369,7 +379,7 @@ class FSelectMenuTile<T> extends StatefulWidget with FTileMixin, FFormFieldPrope
     this.selectControl,
     this.popoverControl = const .managed(),
     this.scrollController,
-    this.style,
+    this.style = const .inherit(),
     this.cacheExtent,
     this.maxHeight = .infinity,
     this.dragStartBehavior = .start,
@@ -513,10 +523,12 @@ class _FSelectMenuTileState<T> extends State<FSelectMenuTile<T>> with TickerProv
     final inheritedStyle = FTileGroupStyleData.maybeOf(context);
 
     final global = context.theme.selectMenuTileStyle;
-    final selectMenuTileStyle = widget.style?.call(global);
+    final selectMenuTileStyle = widget.style(global);
 
-    final menuStyle = selectMenuTileStyle?.menuStyle ?? global.menuStyle;
-    final tileStyle = selectMenuTileStyle?.tileStyle ?? inheritedStyle?.tileStyle ?? global.tileStyle;
+    final menuStyle = selectMenuTileStyle.menuStyle;
+    final tileStyle = widget.style == const .inherit()
+        ? (inheritedStyle?.tileStyle ?? global.tileStyle)
+        : selectMenuTileStyle.tileStyle;
 
     return MultiValueFormField<T>(
       controller: _controller,
@@ -604,13 +616,13 @@ class _FSelectMenuTileState<T> extends State<FSelectMenuTile<T>> with TickerProv
         );
 
         if (data == null && (widget.label != null || widget.description != null || state.errorText != null)) {
-          final states = {if (!widget.enabled) WidgetState.disabled, if (state.errorText != null) WidgetState.error};
+          final variants = <FFormFieldVariant>{if (!widget.enabled) .disabled, if (state.errorText != null) .error};
           final error = state.errorText == null ? null : widget.errorBuilder(context, state.errorText!);
 
           tile = FLabel(
             axis: .vertical,
-            style: selectMenuTileStyle ?? global,
-            states: states,
+            style: selectMenuTileStyle,
+            variants: variants,
             label: widget.label,
             description: widget.description,
             error: error,

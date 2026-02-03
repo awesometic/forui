@@ -12,7 +12,17 @@ import 'package:forui/forui.dart';
 /// * [FToastStyle] for customizing a toast's appearance.
 class FToast extends StatelessWidget {
   /// The toast's style.
-  final FToastStyle Function(FToastStyle style)? style;
+  ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FToastStyle(...)
+  /// ```
+  final FToastStyleDelta style;
 
   /// An optional icon aligned to the start of the toast (left in LTR locales).
   final Widget? icon;
@@ -27,11 +37,18 @@ class FToast extends StatelessWidget {
   final Widget? suffix;
 
   /// Creates a [FToast].
-  const FToast({required this.title, this.style, this.icon, this.description, this.suffix, super.key});
+  const FToast({
+    required this.title,
+    this.style = const .inherit(),
+    this.icon,
+    this.description,
+    this.suffix,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style?.call(context.theme.toasterStyle.toastStyle) ?? context.theme.toasterStyle.toastStyle;
+    final style = this.style.call(context.theme.toasterStyle.toastStyle);
     Widget toast = DecoratedBox(
       decoration: style.decoration,
       child: Padding(

@@ -5,7 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
+import 'package:forui/src/theme/delta.dart';
+import 'package:forui/src/theme/variant.dart';
 
+@Variants('FTextField', {
+  'disabled': (2, 'The semantic variant when this widget is disabled and cannot be interacted with.'),
+  'error': (2, 'The semantic variant when this widget is in an error state.'),
+  'focused': (1, 'The interaction variant when the given widget or any of its descendants have focus.'),
+  'hovered': (1, 'The interaction variant when the user drags their mouse cursor over the given widget.'),
+  'pressed': (1, 'The interaction variant when the user is actively pressing down on the given widget.'),
+})
+@Sentinels(FTextFieldStyle, {'fillColor': 'colorSentinel'})
 part 'text_field_style.design.dart';
 
 /// The text field style.
@@ -56,15 +67,8 @@ class FTextFieldStyle extends FLabelStyle with _$FTextFieldStyleFunctions {
   final EdgeInsets scrollPadding;
 
   /// The prefix & suffix icon styles.
-  ///
-  /// The supported states are:
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.error]
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
   @override
-  final FWidgetStateMap<IconThemeData> iconStyle;
+  final FVariants<FTextFieldVariantConstraint, IconThemeData, IconThemeDataDelta> iconStyle;
 
   /// The clear button's style when [FTextField.clearable] is true.
   @override
@@ -75,48 +79,20 @@ class FTextFieldStyle extends FLabelStyle with _$FTextFieldStyleFunctions {
   final FButtonStyle obscureButtonStyle;
 
   /// The content's [TextStyle].
-  ///
-  /// The supported states are:
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.error]
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
   @override
-  final FWidgetStateMap<TextStyle> contentTextStyle;
+  final FVariants<FTextFieldVariantConstraint, TextStyle, TextStyleDelta> contentTextStyle;
 
   /// The hint's [TextStyle].
-  ///
-  /// The supported states are:
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.error]
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
   @override
-  final FWidgetStateMap<TextStyle> hintTextStyle;
+  final FVariants<FTextFieldVariantConstraint, TextStyle, TextStyleDelta> hintTextStyle;
 
   /// The counter's [TextStyle].
-  ///
-  /// The supported states are:
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.error]
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
   @override
-  final FWidgetStateMap<TextStyle> counterTextStyle;
+  final FVariants<FTextFieldVariantConstraint, TextStyle, TextStyleDelta> counterTextStyle;
 
   /// The border.
-  ///
-  /// The supported states are:
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.error]
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
   @override
-  final FWidgetStateMap<InputBorder> border;
+  final FVariants<FTextFieldVariantConstraint, InputBorder, Delta> border;
 
   /// Creates a [FTextFieldStyle].
   FTextFieldStyle({
@@ -147,14 +123,20 @@ class FTextFieldStyle extends FLabelStyle with _$FTextFieldStyleFunctions {
   /// Creates a [FTextFieldStyle] that inherits its properties.
   factory FTextFieldStyle.inherit({required FColors colors, required FTypography typography, required FStyle style}) {
     final label = FLabelStyles.inherit(style: style).verticalStyle;
-    final ghost = FButtonStyles.inherit(colors: colors, typography: typography, style: style).ghost;
+    final ghost = FButtonStyles.inherit(
+      colors: colors,
+      typography: typography,
+      style: style,
+    ).resolve({FButtonVariant.ghost});
     final textStyle = typography.sm.copyWith(fontFamily: typography.defaultFontFamily);
-    final iconStyle = FWidgetStateMap({
-      WidgetState.disabled: IconThemeData(color: colors.disable(colors.mutedForeground), size: 17),
-      WidgetState.any: IconThemeData(color: colors.mutedForeground, size: 17),
-    });
+    final iconStyle = FVariants<FTextFieldVariantConstraint, IconThemeData, IconThemeDataDelta>.delta(
+      IconThemeData(color: colors.mutedForeground, size: 17),
+      variants: {
+        [.disabled]: .delta(color: colors.disable(colors.mutedForeground)),
+      },
+    );
     final bounceableButtonStyle = ghost.copyWith(
-      iconContentStyle: ghost.iconContentStyle.copyWith(iconStyle: iconStyle),
+      iconContentStyle: ghost.iconContentStyle.copyWith(iconStyle: .value(iconStyle.cast())),
     );
 
     return .new(
@@ -162,39 +144,50 @@ class FTextFieldStyle extends FLabelStyle with _$FTextFieldStyleFunctions {
       iconStyle: iconStyle,
       clearButtonStyle: bounceableButtonStyle,
       obscureButtonStyle: bounceableButtonStyle.copyWith(
-        tappableStyle: (style) =>
-            style.copyWith(motion: (motion) => motion.copyWith(bounceTween: FTappableMotion.noBounceTween)),
+        tappableStyle: const .delta(motion: .delta(bounceTween: FTappableMotion.noBounceTween)),
       ),
-      contentTextStyle: FWidgetStateMap({
-        WidgetState.disabled: textStyle.copyWith(color: colors.disable(colors.primary)),
-        WidgetState.any: textStyle.copyWith(color: colors.primary),
-      }),
-      hintTextStyle: FWidgetStateMap({
-        WidgetState.disabled: textStyle.copyWith(color: colors.disable(colors.border)),
-        WidgetState.any: textStyle.copyWith(color: colors.mutedForeground),
-      }),
-      counterTextStyle: FWidgetStateMap({
-        WidgetState.disabled: textStyle.copyWith(color: colors.disable(colors.primary)),
-        WidgetState.any: textStyle.copyWith(color: colors.primary),
-      }),
-      border: FWidgetStateMap({
-        WidgetState.error: OutlineInputBorder(
-          borderSide: BorderSide(color: colors.error, width: style.borderWidth),
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.disabled: OutlineInputBorder(
-          borderSide: BorderSide(color: colors.disable(colors.border), width: style.borderWidth),
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.focused: OutlineInputBorder(
-          borderSide: BorderSide(color: colors.primary, width: style.borderWidth),
-          borderRadius: style.borderRadius,
-        ),
-        WidgetState.any: OutlineInputBorder(
+      contentTextStyle: .delta(
+        textStyle.copyWith(color: colors.primary),
+        variants: {
+          [.disabled]: .delta(color: colors.disable(colors.primary)),
+        },
+      ),
+      hintTextStyle: .delta(
+        textStyle.copyWith(color: colors.mutedForeground),
+        variants: {
+          [.disabled]: .delta(color: colors.disable(colors.border)),
+        },
+      ),
+      counterTextStyle: .delta(
+        textStyle.copyWith(color: colors.primary),
+        variants: {
+          [.disabled]: .delta(color: colors.disable(colors.primary)),
+        },
+      ),
+      border: FVariants(
+        OutlineInputBorder(
           borderSide: BorderSide(color: colors.border, width: style.borderWidth),
           borderRadius: style.borderRadius,
         ),
-      }),
+        variants: {
+          [.disabled.and(.error)]: OutlineInputBorder(
+            borderSide: BorderSide(color: colors.disable(colors.error), width: style.borderWidth),
+            borderRadius: style.borderRadius,
+          ),
+          [.error]: OutlineInputBorder(
+            borderSide: BorderSide(color: colors.error, width: style.borderWidth),
+            borderRadius: style.borderRadius,
+          ),
+          [.disabled]: OutlineInputBorder(
+            borderSide: BorderSide(color: colors.disable(colors.border), width: style.borderWidth),
+            borderRadius: style.borderRadius,
+          ),
+          [.focused]: OutlineInputBorder(
+            borderSide: BorderSide(color: colors.primary, width: style.borderWidth),
+            borderRadius: style.borderRadius,
+          ),
+        },
+      ),
       labelTextStyle: style.formFieldStyle.labelTextStyle,
       descriptionTextStyle: style.formFieldStyle.descriptionTextStyle,
       errorTextStyle: style.formFieldStyle.errorTextStyle,

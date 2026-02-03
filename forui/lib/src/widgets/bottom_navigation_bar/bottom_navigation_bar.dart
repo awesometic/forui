@@ -6,8 +6,11 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
 import 'package:forui/src/foundation/debug.dart';
+import 'package:forui/src/theme/delta.dart';
 
+@Sentinels(FBottomNavigationBarStyle, {'backgroundFilter': 'imageFilterSentinel'})
 part 'bottom_navigation_bar.design.dart';
 
 /// A bottom navigation bar.
@@ -22,13 +25,23 @@ part 'bottom_navigation_bar.design.dart';
 class FBottomNavigationBar extends StatelessWidget {
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FBottomNavigationBarStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create bottom-navigation-bar
   /// ```
-  final FBottomNavigationBarStyle Function(FBottomNavigationBarStyle style)? style;
+  final FBottomNavigationBarStyleDelta style;
 
   /// A callback for when an item is selected.
   final ValueChanged<int>? onChange;
@@ -50,7 +63,7 @@ class FBottomNavigationBar extends StatelessWidget {
   /// See [FBottomNavigationBarItem] for the items in a bottom navigation bar.
   const FBottomNavigationBar({
     required this.children,
-    this.style,
+    this.style = const .inherit(),
     this.onChange,
     this.index = -1,
     this.safeAreaTop = false,
@@ -60,7 +73,7 @@ class FBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style?.call(context.theme.bottomNavigationBarStyle) ?? context.theme.bottomNavigationBarStyle;
+    final style = this.style(context.theme.bottomNavigationBarStyle);
     final padding = style.padding.resolve(Directionality.maybeOf(context) ?? .ltr);
 
     Widget bar = DecoratedBox(

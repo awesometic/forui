@@ -37,17 +37,27 @@ part 'input/input_date_field.dart';
 /// * [FDateFieldStyle] for customizing a date field's appearance.
 abstract class FDateField extends StatefulWidget {
   /// The default prefix builder that shows a calendar icon.
-  static Widget defaultIconBuilder(BuildContext _, FDateFieldStyle style, Set<WidgetState> states) => Padding(
+  static Widget defaultIconBuilder(BuildContext _, FDateFieldStyle style, Set<FTextFieldVariant> variants) => Padding(
     padding: const .directional(start: 14.0, end: 8.0),
-    child: IconTheme(data: style.fieldStyle.iconStyle.resolve(states), child: const Icon(FIcons.calendar)),
+    child: IconTheme(data: style.fieldStyle.iconStyle.resolve(variants), child: const Icon(FIcons.calendar)),
   );
 
-  static Widget _fieldBuilder(BuildContext _, FDateFieldStyle _, Set<WidgetState> _, Widget child) => child;
+  static Widget _fieldBuilder(BuildContext _, FDateFieldStyle _, Set<FTextFieldVariant> _, Widget child) => child;
 
   /// The control for managing the date field's state.
   final FDateFieldControl control;
 
   /// The style.
+  ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FDateFieldStyle(...)
+  /// ```
   ///
   /// ## CLI
   /// To generate and customize this style:
@@ -55,7 +65,7 @@ abstract class FDateField extends StatefulWidget {
   /// ```shell
   /// dart run forui style create date-field
   /// ```
-  final FDateFieldStyle Function(FDateFieldStyle style)? style;
+  final FDateFieldStyleDelta style;
 
   /// {@macro forui.foundation.doc_templates.autofocus}
   final bool autofocus;
@@ -115,7 +125,7 @@ abstract class FDateField extends StatefulWidget {
 
   const FDateField._({
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.autofocus = false,
     this.focusNode,
     this.builder = _fieldBuilder,
@@ -170,7 +180,7 @@ abstract class FDateField extends StatefulWidget {
   const factory FDateField({
     FDateFieldControl control,
     FPopoverControl popoverControl,
-    FDateFieldStyle Function(FDateFieldStyle style)? style,
+    FDateFieldStyleDelta style,
     FocusNode? focusNode,
     TextInputAction? textInputAction,
     TextAlign textAlign,
@@ -253,7 +263,7 @@ abstract class FDateField extends StatefulWidget {
   const factory FDateField.calendar({
     FDateFieldControl control,
     FPopoverControl popoverControl,
-    FDateFieldStyle Function(FDateFieldStyle style)? style,
+    FDateFieldStyleDelta style,
     DateFormat? format,
     TextAlign textAlign,
     TextAlignVertical? textAlignVertical,
@@ -324,7 +334,7 @@ abstract class FDateField extends StatefulWidget {
   /// * [FDateField.calendar] - Creates a date field with only a calendar.
   const factory FDateField.input({
     FDateFieldControl control,
-    FDateFieldStyle Function(FDateFieldStyle style)? style,
+    FDateFieldStyleDelta style,
     bool autofocus,
     FocusNode? focusNode,
     FFieldBuilder<FDateFieldStyle> builder,

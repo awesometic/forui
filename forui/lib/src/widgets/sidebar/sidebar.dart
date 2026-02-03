@@ -6,7 +6,10 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
+import 'package:forui/src/theme/delta.dart';
 
+@Sentinels(FSidebarStyle, {'backgroundFilter': 'imageFilterSentinel'})
 part 'sidebar.design.dart';
 
 /// A sidebar widget that provides an opinionated layout on the side of the screen.
@@ -36,13 +39,23 @@ part 'sidebar.design.dart';
 class FSidebar extends StatefulWidget {
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FSidebarStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create sidebar
   /// ```
-  final FSidebarStyle Function(FSidebarStyle style)? style;
+  final FSidebarStyleDelta style;
 
   /// An optional sticky header.
   final Widget? header;
@@ -71,7 +84,7 @@ class FSidebar extends StatefulWidget {
     required List<Widget> children,
     this.header,
     this.footer,
-    this.style,
+    this.style = const .inherit(),
     this.autofocus = false,
     this.focusNode,
     this.traversalEdgeBehavior,
@@ -86,7 +99,7 @@ class FSidebar extends StatefulWidget {
   FSidebar.builder({
     required Widget Function(BuildContext context, int index) itemBuilder,
     required int itemCount,
-    this.style,
+    this.style = const .inherit(),
     this.header,
     this.footer,
     this.autofocus = false,
@@ -107,7 +120,7 @@ class FSidebar extends StatefulWidget {
     required this.child,
     this.header,
     this.footer,
-    this.style,
+    this.style = const .inherit(),
     this.autofocus = false,
     this.focusNode,
     this.traversalEdgeBehavior,
@@ -167,7 +180,7 @@ class _FSidebarState extends State<FSidebar> {
 
   @override
   Widget build(BuildContext context) {
-    final style = widget.style?.call(context.theme.sidebarStyle) ?? context.theme.sidebarStyle;
+    final style = widget.style(context.theme.sidebarStyle);
 
     Widget sidebar = FocusScope(
       autofocus: widget.autofocus,

@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
 import 'package:forui/src/foundation/input/parser.dart';
+import 'package:forui/src/theme/variant.dart';
 
 @internal
 abstract class InputController extends TextEditingController {
@@ -83,11 +84,10 @@ abstract class InputController extends TextEditingController {
   @override
   TextSpan buildTextSpan({required BuildContext context, required bool withComposing, TextStyle? style}) {
     if (text == placeholder) {
-      final states = statesController.value;
-      // TODO: explore custom widget states.
-      style = states.contains(WidgetState.focused)
-          ? this.style.contentTextStyle.resolve(states)
-          : this.style.hintTextStyle.maybeResolve({}) ?? style;
+      final platform = context.platformVariant;
+      style = statesController.value.contains(WidgetState.focused)
+          ? this.style.contentTextStyle.resolve(toTextFieldVariants(platform, statesController.value))
+          : this.style.hintTextStyle.resolve({platform});
     }
 
     return super.buildTextSpan(context: context, withComposing: withComposing, style: style);

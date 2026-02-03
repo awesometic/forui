@@ -31,11 +31,11 @@ class ToastPage extends Example {
             description: const Text('Friday, May 23, 2025 at 9:00 AM'),
             suffixBuilder: (context, entry) => IntrinsicHeight(
               child: FButton(
-                style: context.theme.buttonStyles.primary.copyWith(
-                  contentStyle: context.theme.buttonStyles.primary.contentStyle.copyWith(
+                style: .delta(
+                  contentStyle: .delta(
                     padding: const .symmetric(horizontal: 12, vertical: 7.5),
-                    textStyle: .all(
-                      context.theme.typography.xs.copyWith(color: context.theme.colors.primaryForeground),
+                    textStyle: .value(
+                      .all(context.theme.typography.xs.copyWith(color: context.theme.colors.primaryForeground)),
                     ),
                   ),
                 ),
@@ -94,41 +94,36 @@ class RawToastPage extends Example {
   RawToastPage({@queryParam super.theme});
 
   @override
-  Widget example(BuildContext context) {
-    final cardStyle = context.theme.cardStyle.copyWith(
-      contentStyle: context.theme.cardStyle.contentStyle.copyWith(
-        titleTextStyle: context.theme.typography.sm.copyWith(
-          color: context.theme.colors.primary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-
-    return FButton(
-      mainAxisSize: .min,
-      // {@highlight}
-      onPress: () => showRawFToast(
-        // {@endhighlight}
-        context: context,
-        duration: null,
-        builder: (context, toast) => IntrinsicHeight(
-          child: FCard(
-            style: cardStyle,
-            title: const Text('Event has been created'),
-            subtitle: const Padding(
-              padding: .symmetric(vertical: 5),
-              child: Text(
-                'This is a more detailed description that provides comprehensive context and additional information '
-                'about the notification, explaining what happened and what the user might expect next.',
+  Widget example(BuildContext context) => FButton(
+    mainAxisSize: .min,
+    // {@highlight}
+    onPress: () => showRawFToast(
+      // {@endhighlight}
+      context: context,
+      duration: null,
+      builder: (context, toast) => IntrinsicHeight(
+        child: FCard(
+          style: .delta(
+            contentStyle: .delta(
+              titleTextStyle: .value(
+                context.theme.typography.sm.copyWith(color: context.theme.colors.primary, fontWeight: .w600),
               ),
             ),
-            child: FButton(onPress: () => toast.dismiss(), child: const Text('undo')),
           ),
+          title: const Text('Event has been created'),
+          subtitle: const Padding(
+            padding: .symmetric(vertical: 5),
+            child: Text(
+              'This is a more detailed description that provides comprehensive context and additional information '
+              'about the notification, explaining what happened and what the user might expect next.',
+            ),
+          ),
+          child: FButton(onPress: () => toast.dismiss(), child: const Text('undo')),
         ),
       ),
-      child: const Text('Show Toast'),
-    );
-  }
+    ),
+    child: const Text('Show Toast'),
+  );
 }
 
 @RoutePage()
@@ -141,11 +136,9 @@ class AlwaysExpandToastPage extends StatelessWidget {
   Widget build(BuildContext context) => FTheme(
     data: theme,
     child: FToaster(
-      style: context.theme.toasterStyle.copyWith(
-        // {@highlight}
-        expandBehavior: .always,
-        // {@endhighlight}
-      ),
+      // {@highlight}
+      style: const .delta(expandBehavior: .always),
+      // {@endhighlight}
       child: FScaffold(
         child: Align(
           child: ConstrainedBox(
@@ -180,11 +173,9 @@ class DisabledExpandToastPage extends StatelessWidget {
   Widget build(BuildContext context) => FTheme(
     data: theme,
     child: FToaster(
-      style: context.theme.toasterStyle.copyWith(
-        // {@highlight}
-        expandBehavior: .disabled,
-        // {@endhighlight}
-      ),
+      // {@highlight}
+      style: const .delta(expandBehavior: .disabled),
+      // {@endhighlight}
       child: FScaffold(
         child: Align(
           child: ConstrainedBox(

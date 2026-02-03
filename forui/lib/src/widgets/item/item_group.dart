@@ -7,7 +7,12 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
+import 'package:forui/src/theme/variant.dart';
 
+@Variants('FItemGroup', {
+  'disabled': (2, 'The semantic variant when this widget is disabled and cannot be interacted with.'),
+})
 part 'item_group.design.dart';
 
 /// A marker interface which denotes that mixed-in widgets can group items and be used in a [FItemGroup.merge].
@@ -15,7 +20,7 @@ mixin FItemGroupMixin on Widget {
   /// {@macro forui.widgets.FItemGroup.new}
   static FItemGroup group({
     required List<FItemMixin> children,
-    FItemGroupStyle Function(FItemGroupStyle style)? style,
+    FItemGroupStyleDelta style = const .inherit(),
     ScrollController? scrollController,
     double? cacheExtent,
     double maxHeight = .infinity,
@@ -43,7 +48,7 @@ mixin FItemGroupMixin on Widget {
   static FItemGroup builder({
     required NullableIndexedWidgetBuilder itemBuilder,
     int? count,
-    FItemGroupStyle Function(FItemGroupStyle style)? style,
+    FItemGroupStyleDelta style = const .inherit(),
     ScrollController? scrollController,
     double? cacheExtent,
     double maxHeight = .infinity,
@@ -71,7 +76,7 @@ mixin FItemGroupMixin on Widget {
   /// {@macro forui.widgets.FItemGroup.merge}
   static FItemGroup merge({
     required List<FItemGroupMixin> children,
-    FItemGroupStyle Function(FItemGroupStyle style)? style,
+    FItemGroupStyleDelta style = const .inherit(),
     ScrollController? scrollController,
     double? cacheExtent,
     double maxHeight = .infinity,
@@ -133,13 +138,23 @@ mixin FItemGroupMixin on Widget {
 class FItemGroup extends StatelessWidget with FItemGroupMixin {
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FItemGroupStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create item-group
   /// ```
-  final FItemGroupStyle Function(FItemGroupStyle style)? style;
+  final FItemGroupStyleDelta style;
 
   /// {@template forui.widgets.FItemGroup.scrollController}
   /// The scroll controller used to control the position to which this group is scrolled.
@@ -206,7 +221,7 @@ class FItemGroup extends StatelessWidget with FItemGroupMixin {
   /// {@endtemplate}
   FItemGroup({
     required List<FItemMixin> children,
-    this.style,
+    this.style = const .inherit(),
     this.scrollController,
     this.cacheExtent,
     this.maxHeight = .infinity,
@@ -254,7 +269,7 @@ class FItemGroup extends StatelessWidget with FItemGroupMixin {
   FItemGroup.builder({
     required NullableIndexedWidgetBuilder itemBuilder,
     int? count,
-    this.style,
+    this.style = const .inherit(),
     this.scrollController,
     this.cacheExtent,
     this.maxHeight = .infinity,
@@ -294,7 +309,7 @@ class FItemGroup extends StatelessWidget with FItemGroupMixin {
   /// {@endtemplate}
   FItemGroup.merge({
     required List<FItemGroupMixin> children,
-    this.style,
+    this.style = const .inherit(),
     this.scrollController,
     this.cacheExtent,
     this.maxHeight = .infinity,
@@ -327,7 +342,7 @@ class FItemGroup extends StatelessWidget with FItemGroupMixin {
   /// This function is a shorthand for [FItemGroup.new].
   FItemGroup.group({
     required List<FItemMixin> children,
-    FItemGroupStyle Function(FItemGroupStyle style)? style,
+    FItemGroupStyleDelta style = const .inherit(),
     ScrollController? scrollController,
     double? cacheExtent,
     double maxHeight = .infinity,
@@ -354,8 +369,7 @@ class FItemGroup extends StatelessWidget with FItemGroupMixin {
   @override
   Widget build(BuildContext context) {
     final data = FInheritedItemData.maybeOf(context);
-    final inheritedStyle = FItemGroupStyleData.of(context);
-    final style = this.style?.call(inheritedStyle) ?? inheritedStyle;
+    final style = this.style(FItemGroupStyleData.of(context));
     final enabled = this.enabled ?? data?.enabled ?? true;
 
     final sliver = _builder(style, enabled);
@@ -444,11 +458,8 @@ class FItemGroupStyle with Diagnosticable, _$FItemGroupStyleFunctions {
   final double spacing;
 
   /// The divider's style.
-  ///
-  /// Supported states:
-  /// * [WidgetState.disabled]
   @override
-  final FWidgetStateMap<Color> dividerColor;
+  final FVariants<FItemGroupVariantConstraint, Color, Delta> dividerColor;
 
   /// The divider's width.
   @override

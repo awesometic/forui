@@ -50,7 +50,7 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
 
   static bool _clearable(TextEditingValue _) => false;
 
-  static Widget _builder(BuildContext _, FAutocompleteStyle _, Set<WidgetState> _, Widget? child) => child!;
+  static Widget _builder(BuildContext _, FAutocompleteStyle _, Set<FTextFieldVariant> _, Widget? child) => child!;
 
   /// Defines how the autocomplete's state is controlled.
   ///
@@ -64,13 +64,23 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
 
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FAutocompleteStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create autocomplete
   /// ```
-  final FAutocompleteStyle Function(FAutocompleteStyle style)? style;
+  final FAutocompleteStyleDelta style;
 
   /// {@macro forui.text_field.label}
   @override
@@ -112,9 +122,6 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
 
   /// {@macro forui.text_field.focusNode}
   final FocusNode? focusNode;
-
-  /// {@macro forui.text_field.statesController}
-  final WidgetStatesController? statesController;
 
   /// {@macro forui.text_field.obscuringCharacter}
   final String obscuringCharacter;
@@ -322,7 +329,7 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
     required List<String> items,
     FAutocompleteControl control = const .managed(),
     FPopoverControl popoverControl = const .managed(),
-    FAutocompleteStyle Function(FAutocompleteStyle style)? style,
+    FAutocompleteStyleDelta style = const .inherit(),
     Widget? label,
     String? hint,
     Widget? description,
@@ -337,7 +344,6 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
     TextDirection? textDirection,
     VoidCallback? contentOnTapHide,
     bool autofocus = false,
-    WidgetStatesController? statesController,
     String obscuringCharacter = '•',
     bool obscureText = false,
     bool autocorrect = true,
@@ -426,7 +432,6 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
          textDirection: textDirection,
          contentOnTapHide: contentOnTapHide,
          autofocus: autofocus,
-         statesController: statesController,
          obscuringCharacter: obscuringCharacter,
          obscureText: obscureText,
          autocorrect: autocorrect,
@@ -499,7 +504,7 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
     required this.contentBuilder,
     this.control = const .managed(),
     this.popoverControl = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.label,
     this.hint,
     this.description,
@@ -514,7 +519,6 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
     this.textDirection,
     this.contentOnTapHide,
     this.autofocus = false,
-    this.statesController,
     this.obscuringCharacter = '•',
     this.obscureText = false,
     this.autocorrect = true,
@@ -601,7 +605,6 @@ class FAutocomplete extends StatefulWidget with FFormFieldProperties<String> {
       ..add(EnumProperty('textDirection', textDirection))
       ..add(FlagProperty('autofocus', value: autofocus, ifTrue: 'autofocus'))
       ..add(DiagnosticsProperty('focusNode', focusNode))
-      ..add(DiagnosticsProperty('statesController', statesController))
       ..add(StringProperty('obscuringCharacter', obscuringCharacter))
       ..add(FlagProperty('obscureText', value: obscureText, ifTrue: 'obscureText'))
       ..add(FlagProperty('autocorrect', value: autocorrect, ifTrue: 'autocorrect'))
@@ -788,7 +791,7 @@ class _State extends State<FAutocomplete> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final style = widget.style?.call(context.theme.autocompleteStyle) ?? context.theme.autocompleteStyle;
+    final style = widget.style(context.theme.autocompleteStyle);
     // On desktop, the textfield selects the entire text when focused (except when tapped). However, refocusing on the
     // textfield after keyboard navigation of completions should NOT select the entire text.
     //
@@ -820,7 +823,6 @@ class _State extends State<FAutocomplete> with TickerProviderStateMixin {
         textAlignVertical: widget.textAlignVertical,
         textDirection: widget.textDirection,
         autofocus: widget.autofocus,
-        statesController: widget.statesController,
         obscuringCharacter: widget.obscuringCharacter,
         obscureText: widget.obscureText,
         autocorrect: widget.autocorrect,
@@ -861,10 +863,10 @@ class _State extends State<FAutocomplete> with TickerProviderStateMixin {
         spellCheckConfiguration: widget.spellCheckConfiguration,
         prefixBuilder: widget.prefixBuilder == null
             ? null
-            : (context, _, states) => widget.prefixBuilder!(context, style, states),
+            : (context, _, variants) => widget.prefixBuilder!(context, style, variants),
         suffixBuilder: widget.suffixBuilder == null
             ? null
-            : (context, _, states) => widget.suffixBuilder!(context, style, states),
+            : (context, _, variants) => widget.suffixBuilder!(context, style, variants),
         clearable: widget.clearable,
         onSaved: widget.onSaved,
         onReset: widget.onReset,
@@ -872,7 +874,7 @@ class _State extends State<FAutocomplete> with TickerProviderStateMixin {
         autovalidateMode: widget.autovalidateMode,
         forceErrorText: widget.forceErrorText,
         errorBuilder: widget.errorBuilder,
-        builder: (context, _, states, field) => FocusTraversalGroup(
+        builder: (context, _, variants, field) => FocusTraversalGroup(
           policy: SkipDelegateTraversalPolicy(FocusTraversalGroup.maybeOf(context) ?? ReadingOrderTraversalPolicy()),
           child: FPopover(
             control: .managed(controller: _popoverController),
@@ -925,7 +927,7 @@ class _State extends State<FAutocomplete> with TickerProviderStateMixin {
             ),
             child: InheritedAutocompleteStyle(
               style: style,
-              states: states,
+              variants: variants,
               child: CallbackShortcuts(
                 bindings: {
                   const SingleActivator(.escape): _popoverController.hide,
@@ -938,7 +940,7 @@ class _State extends State<FAutocomplete> with TickerProviderStateMixin {
                   ) when widget.rightArrowToComplete)
                     const SingleActivator(.arrowRight): () => _complete(replacement),
                 },
-                child: widget.builder(context, style, states, field),
+                child: widget.builder(context, style, variants, field),
               ),
             ),
           ),
@@ -967,20 +969,20 @@ final class InheritedAutocompleteStyle extends InheritedWidget {
   /// The autocomplete style.
   final FAutocompleteStyle style;
 
-  /// The current widget states.
-  final Set<WidgetState> states;
+  /// The current widget variants.
+  final Set<FTextFieldVariant> variants;
 
-  const InheritedAutocompleteStyle({required this.style, required this.states, required super.child, super.key});
+  const InheritedAutocompleteStyle({required this.style, required this.variants, required super.child, super.key});
 
   @override
-  bool updateShouldNotify(InheritedAutocompleteStyle old) => style != old.style || states != old.states;
+  bool updateShouldNotify(InheritedAutocompleteStyle old) => style != old.style || variants != old.variants;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
       ..add(DiagnosticsProperty('style', style))
-      ..add(DiagnosticsProperty('states', states));
+      ..add(DiagnosticsProperty('variants', variants));
   }
 }
 
@@ -993,24 +995,17 @@ class FAutocompleteStyle with Diagnosticable, _$FAutocompleteStyleFunctions {
   /// The composing text's [TextStyle].
   ///
   /// {@template forui.text_field.composingTextStyle}
-  /// It is strongly recommended that FTextFieldStyle.contentTextStyle], [composingTextStyle] and [typeaheadTextStyle]
+  /// It is strongly recommended that [FTextFieldStyle.contentTextStyle], [composingTextStyle] and [typeaheadTextStyle]
   /// are the same size to prevent visual discrepancies between the actual and typeahead text.
-  ///
-  /// The supported states are:
-  /// * [WidgetState.disabled]
-  /// * [WidgetState.error]
-  /// * [WidgetState.focused]
-  /// * [WidgetState.hovered]
-  /// * [WidgetState.pressed]
   /// {@endtemplate}
   @override
-  final FWidgetStateMap<TextStyle> composingTextStyle;
+  final FVariants<FTextFieldVariantConstraint, TextStyle, TextStyleDelta> composingTextStyle;
 
   /// The typeahead's [TextStyle].
   ///
   /// {@macro forui.text_field.composingTextStyle}
   @override
-  final FWidgetStateMap<TextStyle> typeaheadTextStyle;
+  final FVariants<FTextFieldVariantConstraint, TextStyle, TextStyleDelta> typeaheadTextStyle;
 
   /// The content's style.
   @override
@@ -1033,8 +1028,8 @@ class FAutocompleteStyle with Diagnosticable, _$FAutocompleteStyleFunctions {
     final field = FTextFieldStyle.inherit(colors: colors, typography: typography, style: style);
     return .new(
       fieldStyle: field,
-      composingTextStyle: field.contentTextStyle.map((s) => s.copyWith(decoration: .underline)),
-      typeaheadTextStyle: field.contentTextStyle.map((s) => s.copyWith(color: colors.mutedForeground)),
+      composingTextStyle: field.contentTextStyle.apply([.onAll(const .delta(decoration: .underline))]),
+      typeaheadTextStyle: field.contentTextStyle.apply([.onAll(.delta(color: colors.mutedForeground))]),
       contentStyle: .inherit(colors: colors, typography: typography, style: style),
     );
   }

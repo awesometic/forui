@@ -20,13 +20,23 @@ part 'sidebar_group.design.dart';
 class FSidebarGroup extends StatelessWidget {
   /// The sidebar group's style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FSidebarGroupStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create sidebar
   /// ```
-  final FSidebarGroupStyle Function(FSidebarGroupStyle style)? style;
+  final FSidebarGroupStyleDelta style;
 
   /// The label of the group.
   final Widget? label;
@@ -37,8 +47,8 @@ class FSidebarGroup extends StatelessWidget {
   /// Called when the action's hover state changes.
   final ValueChanged<bool>? onActionHoverChange;
 
-  /// Called when the action's state changes.
-  final ValueChanged<FWidgetStatesDelta>? onActionStateChange;
+  /// Called when the action's variant changes.
+  final FTappableVariantChangeCallback? onActionVariantChange;
 
   /// Called when the action is pressed.
   final VoidCallback? onActionPress;
@@ -52,11 +62,11 @@ class FSidebarGroup extends StatelessWidget {
   /// Creates a [FSidebarGroup].
   const FSidebarGroup({
     required this.children,
-    this.style,
+    this.style = const .inherit(),
     this.label,
     this.action,
     this.onActionHoverChange,
-    this.onActionStateChange,
+    this.onActionVariantChange,
     this.onActionPress,
     this.onActionLongPress,
     super.key,
@@ -64,10 +74,7 @@ class FSidebarGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sidebarData = FSidebarData.maybeOf(context);
-    final inheritedStyle = sidebarData?.style.groupStyle ?? context.theme.sidebarStyle.groupStyle;
-    final style = this.style?.call(inheritedStyle) ?? inheritedStyle;
-
+    final style = this.style(FSidebarData.maybeOf(context)?.style.groupStyle ?? context.theme.sidebarStyle.groupStyle);
     return FSidebarGroupData(
       style: style,
       child: Padding(
@@ -92,11 +99,11 @@ class FSidebarGroup extends StatelessWidget {
                         style: style.tappableStyle,
                         focusedOutlineStyle: style.focusedOutlineStyle,
                         onHoverChange: onActionHoverChange,
-                        onStateChange: onActionStateChange,
+                        onVariantChange: onActionVariantChange,
                         onPress: onActionPress,
                         onLongPress: onActionLongPress,
-                        builder: (_, states, child) =>
-                            IconTheme(data: style.actionStyle.resolve(states), child: child!),
+                        builder: (_, variants, child) =>
+                            IconTheme(data: style.actionStyle.resolve(variants), child: child!),
                         child: action!,
                       )
                     else
@@ -120,7 +127,7 @@ class FSidebarGroup extends StatelessWidget {
     super.debugFillProperties(properties);
     properties
       ..add(ObjectFlagProperty.has('onActionHoverChange', onActionHoverChange))
-      ..add(ObjectFlagProperty.has('onActionStateChange', onActionStateChange))
+      ..add(ObjectFlagProperty.has('onActionVariantChange', onActionVariantChange))
       ..add(ObjectFlagProperty.has('onActionPress', onActionPress))
       ..add(ObjectFlagProperty.has('onActionLongPress', onActionLongPress))
       ..add(DiagnosticsProperty('style', style));
@@ -172,7 +179,7 @@ class FSidebarGroupStyle with Diagnosticable, _$FSidebarGroupStyleFunctions {
 
   /// The action's style.
   @override
-  final FWidgetStateMap<IconThemeData> actionStyle;
+  final FVariants<FTappableVariantConstraint, IconThemeData, IconThemeDataDelta> actionStyle;
 
   /// The spacing between children. Defaults to 2.
   @override
@@ -212,10 +219,12 @@ class FSidebarGroupStyle with Diagnosticable, _$FSidebarGroupStyleFunctions {
   FSidebarGroupStyle.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
         labelStyle: typography.sm.copyWith(color: colors.mutedForeground, overflow: .ellipsis, fontWeight: .w500),
-        actionStyle: FWidgetStateMap({
-          WidgetState.hovered | WidgetState.pressed: IconThemeData(color: colors.primary, size: 18),
-          WidgetState.any: IconThemeData(color: colors.mutedForeground, size: 18),
-        }),
+        actionStyle: .delta(
+          IconThemeData(color: colors.mutedForeground, size: 18),
+          variants: {
+            [.hovered, .pressed]: .delta(color: colors.primary),
+          },
+        ),
         tappableStyle: style.tappableStyle,
         focusedOutlineStyle: style.focusedOutlineStyle,
         itemStyle: .inherit(colors: colors, typography: typography, style: style),

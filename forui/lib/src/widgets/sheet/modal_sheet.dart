@@ -7,8 +7,11 @@ import 'package:flutter/rendering.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
+import 'package:forui/src/theme/delta.dart';
 import 'package:forui/src/widgets/sheet/sheet.dart';
 
+@Sentinels(FModalSheetStyle, {'barrierFilter': 'imageFilterFunctionSentinel'})
 part 'modal_sheet.design.dart';
 
 /// Shows a modal sheet that appears from the given [side].
@@ -42,6 +45,16 @@ part 'modal_sheet.design.dart';
 /// Returns a `Future` that resolves to the value (if any) that was passed to [Navigator.pop] when the modal sheet was
 /// closed.
 ///
+/// To modify the current style:
+/// ```dart
+/// style: .delta(...)
+/// ```
+///
+/// To replace the style:
+/// ```dart
+/// style: FModalSheetStyle(...)
+/// ```
+///
 /// ## CLI
 /// To generate and customize this widget's style:
 ///
@@ -61,7 +74,7 @@ Future<T?> showFSheet<T>({
   required WidgetBuilder builder,
   required FLayout side,
   bool useRootNavigator = false,
-  FModalSheetStyle Function(FModalSheetStyle style)? style,
+  FModalSheetStyleDelta style = const .inherit(),
   double? mainAxisMaxRatio = 9 / 16,
   bool useSafeArea = false,
   bool resizeToAvoidBottomInset = true,
@@ -81,7 +94,7 @@ Future<T?> showFSheet<T>({
 
   return navigator.push(
     FModalSheetRoute<T>(
-      style: style?.call(context.theme.modalSheetStyle) ?? context.theme.modalSheetStyle,
+      style: style(context.theme.modalSheetStyle),
       side: side,
       builder: builder,
       mainAxisMaxRatio: mainAxisMaxRatio,

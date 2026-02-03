@@ -34,13 +34,23 @@ class FPopoverMenu extends StatelessWidget {
 
   /// The popover menu's style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FPopoverMenuStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create popover-menu
   /// ```
-  final FPopoverMenuStyle Function(FPopoverMenuStyle style)? style;
+  final FPopoverMenuStyleDelta style;
 
   /// Defines how the popover menu's shown state is controlled.
   ///
@@ -149,7 +159,7 @@ class FPopoverMenu extends StatelessWidget {
   FPopoverMenu({
     this.control = const .managed(),
     this.scrollController,
-    this.style,
+    this.style = const .inherit(),
     this.cacheExtent,
     this.maxHeight = .infinity,
     this.dragStartBehavior = .start,
@@ -207,7 +217,7 @@ class FPopoverMenu extends StatelessWidget {
   FPopoverMenu.tiles({
     this.control = const .managed(),
     this.scrollController,
-    this.style,
+    this.style = const .inherit(),
     this.cacheExtent,
     this.maxHeight = .infinity,
     this.dragStartBehavior = .start,
@@ -249,7 +259,7 @@ class FPopoverMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style?.call(context.theme.popoverMenuStyle) ?? context.theme.popoverMenuStyle;
+    final style = this.style(context.theme.popoverMenuStyle);
     return FPopover(
       control: control,
       style: style,
@@ -342,9 +352,11 @@ class FPopoverMenuStyle extends FPopoverStyle with _$FPopoverMenuStyleFunctions 
   /// Creates a [FPopoverMenuStyle] that inherits its properties.
   FPopoverMenuStyle.inherit({required super.colors, required super.style, required FTypography typography})
     : itemGroupStyle = .inherit(colors: colors, style: style, typography: typography).copyWith(
-        decoration: BoxDecoration(
-          border: .all(color: colors.border, width: style.borderWidth),
-          borderRadius: style.borderRadius,
+        decoration: .value(
+          BoxDecoration(
+            border: .all(color: colors.border, width: style.borderWidth),
+            borderRadius: style.borderRadius,
+          ),
         ),
       ),
       tileGroupStyle = .inherit(colors: colors, style: style, typography: typography),

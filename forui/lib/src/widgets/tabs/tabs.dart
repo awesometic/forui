@@ -7,7 +7,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
+import 'package:forui/src/theme/variant.dart';
 
+@Variants('FTab', {'selected': (2, 'The selected tab variant.')})
 part 'tab_controller.dart';
 
 part 'tabs.control.dart';
@@ -52,13 +55,23 @@ class FTabs extends StatefulWidget {
 
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FTabsStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create tabs
   /// ```
-  final FTabsStyle Function(FTabsStyle style)? style;
+  final FTabsStyleDelta style;
 
   /// Whether this tab bar can be scrolled horizontally. Defaults to false.
   ///
@@ -97,7 +110,7 @@ class FTabs extends StatefulWidget {
     this.control = const .managed(),
     this.scrollable = false,
     this.physics,
-    this.style,
+    this.style = const .inherit(),
     this.onPress,
     this.mouseCursor = .defer,
     this.expands = false,
@@ -155,7 +168,7 @@ class _FTabsState extends State<FTabs> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final style = widget.style?.call(context.theme.tabsStyle) ?? context.theme.tabsStyle;
+    final style = widget.style(context.theme.tabsStyle);
     final localizations = Localizations.of<MaterialLocalizations>(context, MaterialLocalizations);
 
     final content = DefaultTextStyle(
@@ -183,8 +196,8 @@ class _FTabsState extends State<FTabs> with SingleTickerProviderStateMixin {
               indicator: style.indicatorDecoration,
               indicatorSize: style.indicatorSize._value,
               dividerColor: Colors.transparent,
-              labelStyle: style.selectedLabelTextStyle,
-              unselectedLabelStyle: style.unselectedLabelTextStyle,
+              labelStyle: style.labelTextStyle.resolve({context.platformVariant, FTabVariant.selected}),
+              unselectedLabelStyle: style.labelTextStyle.resolve({context.platformVariant}),
               onTap: widget.onPress,
             ),
           ),

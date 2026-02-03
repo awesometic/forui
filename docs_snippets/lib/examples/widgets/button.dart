@@ -10,14 +10,7 @@ class ButtonPrimaryPage extends Example {
   ButtonPrimaryPage({@queryParam super.theme});
 
   @override
-  Widget example(BuildContext _) => FButton(
-    // {@highlight}
-    style: FButtonStyle.primary(),
-    // {@endhighlight}
-    mainAxisSize: .min,
-    onPress: () {},
-    child: const Text('Button'),
-  );
+  Widget example(BuildContext _) => FButton(mainAxisSize: .min, onPress: () {}, child: const Text('Button'));
 }
 
 @RoutePage()
@@ -27,7 +20,7 @@ class ButtonSecondaryPage extends Example {
   @override
   Widget example(BuildContext _) => FButton(
     // {@highlight}
-    style: FButtonStyle.secondary(),
+    variants: {.secondary},
     // {@endhighlight}
     mainAxisSize: .min,
     onPress: () {},
@@ -42,7 +35,7 @@ class ButtonDestructivePage extends Example {
   @override
   Widget example(BuildContext _) => FButton(
     // {@highlight}
-    style: FButtonStyle.destructive(),
+    variants: {.destructive},
     // {@endhighlight}
     mainAxisSize: .min,
     onPress: () {},
@@ -57,7 +50,7 @@ class ButtonGhostPage extends Example {
   @override
   Widget example(BuildContext _) => FButton(
     // {@highlight}
-    style: FButtonStyle.ghost(),
+    variants: {.ghost},
     // {@endhighlight}
     mainAxisSize: .min,
     onPress: () {},
@@ -72,7 +65,7 @@ class ButtonOutlinePage extends Example {
   @override
   Widget example(BuildContext _) => FButton(
     // {@highlight}
-    style: FButtonStyle.outline(),
+    variants: {.outline},
     // {@endhighlight}
     mainAxisSize: .min,
     onPress: () {},

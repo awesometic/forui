@@ -10,7 +10,7 @@ part of 'header.dart';
 /// * [FHeaderStyle] for customizing a header's appearance.
 class _FNestedHeader extends FHeader {
   /// The style.
-  final FHeaderStyle Function(FHeaderStyle style)? style;
+  final FHeaderStyleDelta style;
 
   /// The actions, aligned to the left in LTR locales. Defaults to an empty list.
   ///
@@ -27,7 +27,7 @@ class _FNestedHeader extends FHeader {
 
   /// Creates a [_FNestedHeader].
   const _FNestedHeader({
-    this.style,
+    this.style = const .inherit(),
     this.prefixes = const [],
     this.suffixes = const [],
     this.titleAlignment = .center,
@@ -37,7 +37,7 @@ class _FNestedHeader extends FHeader {
 
   @override
   Widget build(BuildContext context) {
-    final style = this.style?.call(context.theme.headerStyles.nestedStyle) ?? context.theme.headerStyles.nestedStyle;
+    final style = this.style(context.theme.headerStyles.resolve({context.platformVariant, FHeaderVariant.nested}));
     final alignment = titleAlignment.resolve(Directionality.maybeOf(context) ?? .ltr);
 
     Widget header = SafeArea(

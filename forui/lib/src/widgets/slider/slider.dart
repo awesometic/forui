@@ -28,13 +28,23 @@ class FSlider extends StatelessWidget with FFormFieldProperties<FSliderValue> {
 
   /// The style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FSliderStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create sliders
   /// ```
-  final FSliderStyle Function(FSliderStyle style)? style;
+  final FSliderStyleDelta style;
 
   /// The layout. Defaults to the current [TextDirection].
   final FLayout? layout;
@@ -109,7 +119,7 @@ class FSlider extends StatelessWidget with FFormFieldProperties<FSliderValue> {
   /// Creates a [FSlider].
   FSlider({
     this.control = const .managedContinuous(),
-    this.style,
+    this.style = const .inherit(),
     this.layout,
     this.label,
     this.description,
@@ -149,8 +159,9 @@ class FSlider extends StatelessWidget with FFormFieldProperties<FSliderValue> {
     };
 
     final styles = context.theme.sliderStyles;
-    final inheritedStyle = (layout.vertical ? styles.verticalStyle : styles.horizontalStyle);
-    final sliderStyle = style?.call(inheritedStyle) ?? inheritedStyle;
+    final sliderStyle = style(
+      styles.resolve({if (layout.vertical) FSliderAxisVariant.vertical, context.platformVariant}),
+    );
 
     return LayoutBuilder(
       builder: (_, constraints) => _Slider(

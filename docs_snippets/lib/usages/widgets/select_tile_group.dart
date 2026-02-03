@@ -6,7 +6,7 @@ import 'package:forui/forui.dart';
 
 final selectTileGroup = FSelectTileGroup<String>(
   // {@category "Core"}
-  style: null,
+  style: const .delta(dividerWidth: 1),
   enabled: true,
   divider: .indented,
   children: const [
@@ -42,7 +42,7 @@ final selectTileGroup = FSelectTileGroup<String>(
 
 final selectTileGroupBuilder = FSelectTileGroup<String>.builder(
   // {@category "Core"}
-  style: null,
+  style: const .delta(dividerWidth: 1),
   enabled: true,
   divider: .indented,
   tileBuilder: (context, index) => FSelectTile(title: Text('Item $index'), value: 'item_$index'),
@@ -75,7 +75,7 @@ final selectTileGroupBuilder = FSelectTileGroup<String>.builder(
 
 final selectTile = FSelectTile<String>(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(margin: .zero),
   enabled: true,
   value: 'apple',
   title: const Text('Apple'),
@@ -95,13 +95,13 @@ final selectTile = FSelectTile<String>(
   // {@endcategory}
   // {@category "Callbacks"}
   onHoverChange: (hovered) {},
-  onStatesChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 
 final selectTileSuffix = FSelectTile<String>.suffix(
   // {@category "Core"}
-  style: (style) => style,
+  style: const .delta(margin: .zero),
   enabled: true,
   value: 'apple',
   title: const Text('Apple'),
@@ -121,7 +121,7 @@ final selectTileSuffix = FSelectTile<String>.suffix(
   // {@endcategory}
   // {@category "Callbacks"}
   onHoverChange: (hovered) {},
-  onStatesChange: (states) {},
+  onVariantChange: (previous, current) {},
   // {@endcategory}
 );
 

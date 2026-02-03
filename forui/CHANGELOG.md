@@ -1,11 +1,111 @@
 ## 0.18.0
 
-### `FTheme`
-* Add `FTheme.textDirection`.
+This update overhauls the Styling API as outlined in [Styling 2.0](https://github.com/duobaseio/forui/blob/main/design_docs/shipped/styling_2.0.md).
 
-* **Breaking** Rename `FTheme` to `FBasicTheme`.
-* **Breaking** Rename `FAnimatedTheme` to `FTheme`.
-* **Breaking** Rename `FAnimatedThemeMotion` to `FThemeMotion`.
+### Key Styling 2.0 Improvements
+
+Simplified style modification using deltas:
+
+```dart
+// Before:
+FAutocomplete(
+  style: (style) => style.copyWith(
+    contentStyle: (content) => content.copyWith(
+      sectionStyle: (section) => section.copyWith(
+        itemStyle: (item) => item.copyWith(
+          tappableStyle: (tappable) => tappable.copyWith(
+            motion: FTappableMotion.none,
+          ),
+        ),
+      ),
+    ),
+  ),
+)
+
+// After:
+FAutocomplete(
+  style: .delta(
+    contentStyle: .delta(
+      sectionStyle: .delta(
+        itemStyle: .delta(
+          tappableStyle: .delta(
+            motion: FTappableMotion.none,
+          ),
+        ),
+      ),
+    ),
+  ),
+)
+```
+
+`FVariants` replaces `FWidgetStateMap` with order-independent, tier-based resolution:
+
+```dart
+// Before
+FWidgetStateMap({
+  WidgetState.hovered: A(),            // Matches first for {hovered, focused}
+  WidgetState.hovered & .focused: B(), // Never reached
+  WidgetState.any: base,               // Easy to omit
+})
+
+// After
+FVariants(
+  base, // Required — no more accidentally omitted defaults
+  variants: {
+    [.hovered.and(.focused)]: A(), // More specific than .hovered alone
+    [.hovered]: B(),               // Order doesn't matter
+    [.disabled]: C(),              // Semantic tier always beats interaction variants, avoiding hovered from being applied when disabled.
+  },
+)
+```
+
+Widget-specific variants replace `WidgetState`s for better type-safety and discoverability:
+
+```dart
+// Before: compiles fine, but scrolledUnder is meaningless for a tappable
+FTappableStyle(
+  decoration: FWidgetStateMap({
+    WidgetState.scrolledUnder: BoxDecoration(...),  // Does FTappableStyle support scrolledUnder? Who knows.
+  }),
+)
+
+// After:
+extension type const FTappableVariant {
+  /// The semantic variant when this widget is disabled and cannot be interacted with.
+  static const disabled = FTappableVariant();
+
+  /// The interaction variant when the user drags their mouse cursor over the given widget.
+  static const hovered = FTappableVariant();
+
+  /// The interaction variant when the user is actively pressing down on the given widget.
+  static const pressed = FTappableVariant();
+}
+
+FTappableStyle(
+  decoration: FVariants(
+    const BoxDecoration(),
+    variants: {
+      [.hovered]: BoxDecoration(...), // Only FTappableVariant allowed (which works well with autocomplete)
+    }
+  ),
+)
+```
+
+Automated fixes via [Data Driven Fixes](https://github.com/flutter/flutter/blob/master/docs/contributing/Data-driven-Fixes.md)
+are not available for most of these changes due to the tool's limitations.
+
+
+### `FAccordionItem`
+* **Breaking** Rename `FAccordionItem.onStateChange` to `FAccordionItem.onVariantChange`.
+
+
+### `FBottomNavigationBarItem`
+* **Breaking** Rename `FBottomNavigationBarItem.onStateChange` to `FBottomNavigationBarItem.onVariantChange`.
+
+
+### `FButton`
+* **Breaking** Rename `FButton.onStateChange` to `FButton.onVariantChange`.
+* **Breaking** Rename `FButtonData.states` to `FButtonData.variants`.
 
 
 ### `FCircularProgress`
@@ -15,7 +115,36 @@
 
 ### `FDateField`
 * **Breaking** Rename `FDateFieldStyle.selectFieldStyle` to `FDateFieldStyle.fieldStyle`.
+
 * **Breaking** Remove `FDateFieldStyle.iconStyle`. Use nested `FDateFieldStyle.fieldStyle.iconStyle` instead.
+
+
+### `showFDialog`
+* **Breaking** Change `showFDialog`'s `style` parameter from `FDialogStyle Function(FDialogStyle)?` to `FDialogStyleDelta?`.
+* **Breaking** Change `showFDialog`'s `routeStyle` parameter from `FDialogRouteStyle Function(FDialogRouteStyle)?` to
+  `FDialogRouteStyleDelta?`.
+
+
+### `showFSheet`
+* **Breaking** Change `showFSheet`'s `style` parameter from `FModalSheetStyle Function(FModalSheetStyle)?` to
+  `FModalSheetStyleDelta?`.
+
+
+### `showFPersistentSheet`
+* **Breaking** Change `showFPersistentSheet`'s `style` parameter from `FPersistentSheetStyle Function(FPersistentSheetStyle)?`
+  to `FPersistentSheetStyleDelta?`.
+
+
+### `FHeaderAction`
+* **Breaking** Rename `FHeaderAction.onStateChange` to `FHeaderAction.onVariantChange`.
+
+
+### `FItem`
+* **Breaking** Rename `FItem.onStateChange` to `FItem.onVariantChange`.
+
+
+### `FMultiSelectTag`
+* **Breaking** Rename `FMultiSelectTag.onStateChange` to `FMultiSelectTag.onVariantChange`.
 
 
 ### `FPicker`
@@ -23,15 +152,29 @@
 
 
 ### `FSelect` & `FMultiSelect`
-* **Breaking** Rename `FSelectStyle.selectFieldStyle` to `FSelectStyle.fieldStyle`.
-* **Breaking** Rename `FSelectSearchStyle.textFieldStyle` to `FSelectSearchStyle.fieldStyle`.
-* **Breaking** Remove `FSelectStyle.iconStyle`. Use `FSelectStyle.fieldStyle.iconStyle` instead.
-* **Breaking** Remove `FSelectSearchStyle.iconStyle`. Use `FSelectSearchStyle.fieldStyle.iconStyle` instead.
-* **Breaking** Change `FMultiSelectFieldStyle.iconStyle` type from `IconThemeData` to `FWidgetStateMap<IconThemeData>`.
-               Wrap existing values with `.all(...)`, e.g. `.all(IconThemeData(...))`.
 * **Breaking** Add `enabled` parameter to `FMultiSelectTagBuilder` at position 1 (after `context`).
 
+* **Breaking** Change `FMultiSelectFieldStyle.iconStyle` type from `IconThemeData` to `FWidgetStateMap<IconThemeData>`.
+  Wrap existing values with `.all(...)`, e.g. `.all(IconThemeData(...))`.
+* **Breaking** Rename `FSelectStyle.selectFieldStyle` to `FSelectStyle.fieldStyle`.
+* **Breaking** Rename `FSelectSearchStyle.textFieldStyle` to `FSelectSearchStyle.fieldStyle`.
+
+* **Breaking** Remove `FSelectStyle.iconStyle`. Use `FSelectStyle.fieldStyle.iconStyle` instead.
+* **Breaking** Remove `FSelectSearchStyle.iconStyle`. Use `FSelectSearchStyle.fieldStyle.iconStyle` instead.
+
 * Fix `FMultiSelect` still allowing tags to be removed when disabled.
+
+
+### `FSelectTile`
+* **Breaking** Rename `FSelectTile.onStatesChange` to `FSelectTile.onVariantChange`.
+
+
+### `FSidebarGroup`
+* **Breaking** Rename `FSidebarGroup.onActionStateChange` to `FSidebarGroup.onActionVariantChange`.
+
+
+### `FSidebarItem`
+* **Breaking** Rename `FSidebarItem.onStateChange` to `FSidebarItem.onVariantChange`.
 
 
 ### `FSlider`
@@ -42,16 +185,40 @@
 * Add `FTabs.expands`.
 
 
-### `FTextField`
+### `FTappable`
+* **Breaking** Rename `FTappable.onStateChange` to `FTappable.onVariantChange`.
+* **Breaking** Change `FTappableVariantChangeCallback` signature from `void Function(Set<FTappableVariant>)` to
+  `void Function(Set<FTappableVariant> previous, Set<FTappableVariant> current)`.
+
+
+### `FTile`
+* **Breaking** Rename `FTile.onStateChange` to `FTile.onVariantChange`.
+
+
+### `FTextField` & `FTextFormField`
 * **Breaking** Add `FTextFieldStyle.iconStyle`.
+* **Breaking** Remove `FTextField.statesController`.
+* **Breaking** Remove `FTextFormField.statesController`.
+* **Breaking** Change `FFieldBuilder` to use `Set<FTextFieldVariant>` instead of `Set<WidgetState>`.
+* **Breaking** Change `FFieldIconBuilder` to use `Set<FTextFieldVariant>` instead of `Set<WidgetState>`.
+* **Breaking** Change `FPasswordFieldIconBuilder` to use `Set<FTextFieldVariant>` instead of `Set<WidgetState>`.
 
 * Change `FTextFieldStyle.clearButtonStyle` to not bounce by default.
 * Change `FTextFieldStyle.obscureButtonStyle` to not bounce by default.
 
 
+### `FTheme`
+* Add `FTheme.textDirection`.
+
+* **Breaking** Rename `FTheme` to `FBasicTheme`.
+* **Breaking** Rename `FAnimatedTheme` to `FTheme`.
+* **Breaking** Rename `FAnimatedThemeMotion` to `FThemeMotion`.
+
+
 ### `FTimeField`
 * Change error message when localizations are missing to be more descriptive.
 * **Breaking** Rename `FTimeFieldStyle.selectFieldStyle` to `FTimeFieldStyle.fieldStyle`.
+
 * **Breaking** Remove `FTimeFieldStyle.iconStyle`. Use `FTimeFieldStyle.fieldStyle.iconStyle` instead.
 
 * Fix `FTimeField` incorrectly handling traversal when no localizations are provided.
@@ -63,6 +230,20 @@
 
 ### `FToaster`
 * Change `FToastAlignment` from an enum to final class to allow fine-grained control over positioning.
+
+
+### Others
+
+* Change all widget styles to implement their widget-specific delta types.
+* **Breaking** Change all widget `style` parameters from callback type `FXxxStyle Function(FXxxStyle)?` to delta type
+  `FXxxStyleDelta?`. Pass a style or `.delta(param: value)` to partially modify specific properties.
+* **Breaking** Change `copyWith` for all styles to uses delta instead of callbacks for nested styles/motions, sentinel
+  values for nullable fields.
+* **Breaking** Replace all instances of `FWidgetStateMap` with `FVariants`.
+* **Breaking** Remove `call` method from all styles.
+* **Breaking** Remove `FWidgetStatesDelta`.
+
+* Fix CLI incorrectly parsing `FStyle`.
 
 
 ## 0.17.0

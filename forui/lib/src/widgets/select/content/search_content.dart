@@ -172,10 +172,10 @@ class _SearchContentState<T> extends State<SearchContent<T>> {
             spellCheckConfiguration: widget.properties.spellCheckConfiguration,
             prefixBuilder: widget.properties.prefixBuilder == null
                 ? null
-                : (context, _, states) => widget.properties.prefixBuilder!(context, widget.searchStyle, states),
+                : (context, _, variants) => widget.properties.prefixBuilder!(context, widget.searchStyle, variants),
             suffixBuilder: widget.properties.suffixBuilder == null
                 ? null
-                : (context, _, states) => widget.properties.suffixBuilder!(context, widget.searchStyle, states),
+                : (context, _, variants) => widget.properties.suffixBuilder!(context, widget.searchStyle, variants),
             clearable: widget.properties.clearable,
           ),
         ),
@@ -241,14 +241,13 @@ class FSelectSearchStyle with Diagnosticable, _$FSelectSearchStyleFunctions {
   FSelectSearchStyle.inherit({required FColors colors, required FTypography typography, required FStyle style})
     : this(
         fieldStyle: .inherit(colors: colors, typography: typography, style: style).copyWith(
-          border: .all(const OutlineInputBorder(borderSide: BorderSide(color: Colors.transparent))),
-          iconStyle: .all(IconThemeData(size: 15, color: colors.mutedForeground)),
+          border: .value(const .all(OutlineInputBorder(borderSide: BorderSide(color: Colors.transparent)))),
+          iconStyle: .value(.all(IconThemeData(size: 15, color: colors.mutedForeground))),
         ),
-
         dividerStyle: FDividerStyles.inherit(
           colors: colors,
           style: style,
-        ).horizontalStyle.copyWith(width: 2, padding: .zero),
+        ).resolve({}).copyWith(width: 2, padding: EdgeInsets.zero),
         progressStyle: .inherit(colors: colors),
       );
 }

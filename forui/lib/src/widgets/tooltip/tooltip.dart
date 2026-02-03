@@ -8,8 +8,11 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 
 import 'package:forui/forui.dart';
+import 'package:forui/src/foundation/annotations.dart';
+import 'package:forui/src/theme/delta.dart';
 import 'package:forui/src/widgets/tooltip/tooltip_controller.dart';
 
+@Sentinels(FTooltipStyle, {'backgroundFilter': 'imageFilterSentinel'})
 part 'tooltip.design.dart';
 
 /// A tooltip displays information related to a widget when focused, hovered over, or long pressed.
@@ -32,13 +35,23 @@ class FTooltip extends StatefulWidget {
 
   /// The tooltip's style.
   ///
+  /// To modify the current style:
+  /// ```dart
+  /// style: .delta(...)
+  /// ```
+  ///
+  /// To replace the style:
+  /// ```dart
+  /// style: FTooltipStyle(...)
+  /// ```
+  ///
   /// ## CLI
   /// To generate and customize this style:
   ///
   /// ```shell
   /// dart run forui style create tooltip
   /// ```
-  final FTooltipStyle Function(FTooltipStyle style)? style;
+  final FTooltipStyleDelta style;
 
   /// The anchor point on the tip used for positioning relative to the [childAnchor].
   ///
@@ -108,7 +121,7 @@ class FTooltip extends StatefulWidget {
   const FTooltip({
     required this.tipBuilder,
     this.control = const .managed(),
-    this.style,
+    this.style = const .inherit(),
     this.tipAnchor = .bottomCenter,
     this.childAnchor = .topCenter,
     this.spacing = const .spacing(4),
@@ -178,7 +191,7 @@ class _FTooltipState extends State<FTooltip> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final style = widget.style?.call(context.theme.tooltipStyle) ?? context.theme.tooltipStyle;
+    final style = widget.style(context.theme.tooltipStyle);
     final direction = Directionality.maybeOf(context) ?? .ltr;
 
     var child = widget.builder(context, _controller, widget.child);
